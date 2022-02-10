@@ -216,7 +216,7 @@ class StudentController extends ApiController
     {
         $ledger_id = $request->input('studentId');
         $validator = Validator::make($request->all(),[
-            'studentName' => ['required',Rule::unique('ledgers', 'ledger_name')->ignore($ledger_id), "max:12"],
+            'studentName' => ['required',Rule::unique('ledgers', 'ledger_name')->ignore($ledger_id), "max:50"],
             'stateId' => "required|exists:states,id"
         ]);
         if ($validator->fails()) {
@@ -281,23 +281,7 @@ class StudentController extends ApiController
               if ($request->input('qualification')) {
                            $student->qualification= $request->input('qualification');
                                       }
-        //$student->ledger_name = $request->input('studentName');
-        //$student->billing_name = $request->input('billingName');
-        //$student->father_name = $request->input('fatherName');
-        //$student->mother_name = $request->input('motherName');
-        //$student->guardian_name = $request->input('guardianName');
-        //$student->relation_to_guardian = $request->input('relationTogGuardian');
-        //$student->dob = $request->input('dob');
-        //$student->sex = $request->input('sex');
-        //$student->address = $request->input('address');
-        //$student->city = $request->input('city');
-        //$student->district = $request->input('district');
-        //$student->state_id= $request->input('stateId');
-        //$student->pin= $request->input('pin');
-        //$student->guardian_contact_number = $request->input('guardianContactNumber');
-        //$student->whatsapp_number = $request->input('whatsappNumber');
-        //$student->email_id = $request->input('email');
-        //$student->qualification= $request->input('qualification');
+      
         $student->save();
         return response()->json(['success'=>1,'data'=>new StudentResource($student)], 200,[],JSON_NUMERIC_CHECK);
 
