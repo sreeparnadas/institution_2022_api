@@ -281,7 +281,7 @@ class StudentController extends ApiController
               if ($request->input('qualification')) {
                            $student->qualification= $request->input('qualification');
                                       }
-      
+
         $student->save();
         return response()->json(['success'=>1,'data'=>new StudentResource($student)], 200,[],JSON_NUMERIC_CHECK);
 
@@ -292,12 +292,15 @@ class StudentController extends ApiController
         if(!empty($student)){
             if($this->is_deletable_student($id)){
                 $result = $student->delete();
+                return $this->successResponse($student,'Deleted');
+            }else{
+                return $this->errorResponse('This student is not deletable',409);
             }
-            return response()->json(['success'=>0,'id'=>null,'message'=>'This student is not deletable'], 200);
         }else{
-            $result = false;
+            return $this->errorResponse('Student Does not exist',404);
         }
-        return response()->json(['success'=>$result,'id'=>$id,'message'=>'Deleted'], 200);
+
+//        return response()->json(['success'=>$result,'id'=>$id,'message'=>'Deleted'], 200);
     }
 
     public function show(Student $student)
