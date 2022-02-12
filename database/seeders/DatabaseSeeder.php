@@ -41,6 +41,7 @@ class DatabaseSeeder extends Seeder
         UserType::create(['user_type_name' => 'Office Staff']);     #7
         UserType::create(['user_type_name' => 'Student']);          #8
 
+
         //owner
         User::create(['user_name'=>'Tanusree Hui','mobile1'=>'9836444999','mobile2'=>'100'
         ,'email'=>'owner','password'=>"81dc9bdb52d04dc20036dbd8313ed055",'user_type_id'=>1]);
