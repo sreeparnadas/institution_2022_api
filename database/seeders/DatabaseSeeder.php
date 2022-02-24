@@ -1147,6 +1147,7 @@ class DatabaseSeeder extends Seeder
     /*insert into durationType table*/
     DurationType::insert([
         /*1*/    ['duration_name' => 'Not Applicable'],
+        /*1*/    ['duration_name' => 'Days'],
         /*2*/    ['duration_name' => 'Year'],
         /*3*/    ['duration_name' => 'Month'],
         /*4*/    ['duration_name' => 'Week'],
