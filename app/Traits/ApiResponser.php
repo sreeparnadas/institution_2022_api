@@ -19,7 +19,7 @@ trait ApiResponser{
         ], $code,[],JSON_NUMERIC_CHECK);
     }
 
-    protected function errorResponse($message = null, $code)
+    protected function errorResponse($message = null, $code=404)
     {
         return response()->json([
             'status'=>false,

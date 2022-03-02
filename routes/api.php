@@ -88,6 +88,7 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
     Route::get("courses",[CourseController::class, 'index']);
     Route::get("courses/{id}",[CourseController::class, 'index_by_id']);
     Route::post("courses",[CourseController::class, 'store']);
+    Route::patch("courses",[CourseController::class, 'update']);
 
 
 
