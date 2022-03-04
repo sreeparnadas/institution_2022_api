@@ -53,7 +53,6 @@ class CourseController extends ApiController
 
     public function update(Request $request)
     {
-
         $course_id = $request->input('courseId');
         $validator = Validator::make($request->all(),[
             'courseCode' => ['required',Rule::unique('courses', 'course_code')->ignore($course_id), "max:20"],
@@ -67,7 +66,6 @@ class CourseController extends ApiController
             return $this->errorResponse($validator->messages());
         }
 
-        //        $course = new Course();
         $course = Course::findOrFail($request->input('courseId'));
         $course->course_code = $request->input('courseCode');
         $course->fees_mode_type_id = $request->input('feesModeTypeId');
@@ -78,6 +76,7 @@ class CourseController extends ApiController
         if ($request->input('description')) {
             $course->description = $request->input('description');
         }
+
         $course->save();
         return $this->successResponse($course);
     }
