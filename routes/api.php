@@ -109,6 +109,7 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
 
 
     //CourseRegistration
+    Route::get("getStudentCourseRegistrations",[StudentCourseRegistrationController::class, 'getStudentToCourseRegistration']);
     Route::post("studentCourseRegistrations",[StudentCourseRegistrationController::class, 'store']);
     Route::get("studentCourseRegistrations",[StudentCourseRegistrationController::class, 'index']);
     Route::delete("studentCourseRegistrations/{id}",[StudentCourseRegistrationController::class, 'destroy']);

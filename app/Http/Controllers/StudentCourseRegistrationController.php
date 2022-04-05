@@ -20,7 +20,29 @@ class StudentCourseRegistrationController extends Controller
         $courseRegistration= StudentCourseRegistration::get();
         return response()->json(['success'=>1,'data'=> $courseRegistration], 200,[],JSON_NUMERIC_CHECK);
     }
-
+    public function getStudentToCourseRegistration()
+    {
+        //$courseRegistration= StudentCourseRegistration::get();
+        $result = DB::table('student_course_registrations')
+            ->join('courses', 'courses.id', '=', 'student_course_registrations.course_id')
+            ->join('ledgers', 'ledgers.id', '=', 'student_course_registrations.ledger_id')
+            ->join('duration_types', 'duration_types.id', '=', 'student_course_registrations.duration_type_id')
+            ->select('student_course_registrations.id', 
+            'ledgers.ledger_name',
+            'ledgers.billing_name',
+            'courses.course_code',
+            'courses.short_name',
+            'courses.full_name',
+            'student_course_registrations.base_fee',
+            'student_course_registrations.discount_allowed',
+            'student_course_registrations.joining_date',
+            'student_course_registrations.effective_date',
+            'student_course_registrations.actual_course_duration',
+            'duration_types.duration_name'
+               )
+            ->get();
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
     public function store(Request $request)
     {
         /*
