@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\StudentQuery;
 use App\Http\Requests\StoreStudentQueryRequest;
 use App\Http\Requests\UpdateStudentQueryRequest;
+use Illuminate\Http\Request;
+
+
 
 class StudentQueryController extends Controller
 {
@@ -23,9 +26,24 @@ class StudentQueryController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function save_query(Request $request)
     {
-        //
+
+
+        $student_query = new StudentQuery();
+        $student_query->student_name = $request->input('studentName');
+        $student_query->address = $request->input('address');
+        $student_query->father_name = $request->input('fatherName');
+        $student_query->mother_name = $request->input('motherName');
+        $student_query->guardian_name = $request->input('guardianName');
+        $student_query->relation_to_guardian = $request->input('relationToGuardian');
+        $student_query->educational_institution = $request->input('educationalInstitution');
+        $student_query->phone_number = $request->input('phoneNumber');
+        $student_query->query = $request->input('query');
+        $student_query->save();
+
+        return response()->json(['success'=>1,'data'=>$student_query], 200,[],JSON_NUMERIC_CHECK);
+
     }
 
     /**

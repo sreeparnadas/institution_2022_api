@@ -16,8 +16,14 @@ class CreateStudentQueriesTable extends Migration
         Schema::create('student_queries', function (Blueprint $table) {
             $table->id();
             $table->string('student_name', 50)->nullable(true);
+            $table->string('address', 100)->nullable(true);
             $table->string('father_name', 50)->nullable(true);
             $table->string('mother_name', 50)->nullable(true);
+            $table->string('guardian_name', 50)->nullable(true);
+            $table->string('relation_to_guardian', 50)->nullable(true);
+            $table->string('educational_institution', 50)->nullable(true);
+            $table->string('phone_number', 50)->nullable(true);
+            $table->string('query', 50)->nullable(true);
             $table->timestamps();
         });
     }

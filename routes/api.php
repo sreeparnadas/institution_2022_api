@@ -11,6 +11,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\DurationTypeController;
+use App\Http\Controllers\StudentQueryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -175,6 +176,8 @@ Route::group(array('prefix' => 'dev'), function() {
         Route::delete("/{id}",[StudentController::class, 'delete']);
     });
 
+//    student_query
+    Route::post("studentQuery", [StudentQueryController::class, 'save_query']);
 
     //course
     Route::get("courses",[CourseController::class, 'index']);
