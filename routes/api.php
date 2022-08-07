@@ -58,6 +58,9 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
         Route::get("/", [StudentController::class, 'index']);
         Route::get("/studentId/{id}", [StudentController::class, 'get_student_by_id']);
 
+        // get any Ledger by Ledger group id
+        Route::get("/feesName", [StudentController::class, 'get_all_feesname']);
+
         // কোন একজন student এর কি কি কোর্স আছে তা দেখার জন্য, যে গুলো চলছে বা শেষ হয়ে গেছে সবই
         Route::get("/studentId/{id}/courses", [StudentController::class, 'get_courses_by_id']);
         // কোন একজন student এর কি কি কোর্স শেষ হয়ে গেছে।

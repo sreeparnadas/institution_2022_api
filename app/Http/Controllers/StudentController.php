@@ -24,6 +24,19 @@ class StudentController extends ApiController
       $students= Student::where('is_student','=',1)->get();
       return response()->json(['success'=>1,'data'=> StudentResource::collection($students)], 200,[],JSON_NUMERIC_CHECK);
     }
+    public function get_all_feesname()
+    {
+      //$courseRegistration= StudentCourseRegistration::get();
+      $result = DB::table('ledgers')
+      ->where('ledger_group_id', '=', 6)
+      ->select('ledgers.id', 
+      'ledgers.ledger_name',
+      'ledgers.billing_name',
+      'ledger_group_id'
+         )
+      ->get();
+  return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
     public function get_all_course_registered_students(){
         $data = Student::has('course_registered')->where('is_student','=',1)->get();
         return response()->json(['success'=>1,'data'=>$data], 200,[],JSON_NUMERIC_CHECK);
