@@ -27,15 +27,31 @@ class StudentController extends ApiController
     public function get_all_feesname()
     {
       //$courseRegistration= StudentCourseRegistration::get();
-      $result = DB::table('ledgers')
-      ->where('ledger_group_id', '=', 6)
-      ->select('ledgers.id', 
-      'ledgers.ledger_name',
-      'ledgers.billing_name',
-      'ledger_group_id'
-         )
-      ->get();
-  return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+        $result = DB::table('ledgers')
+        ->where('ledger_group_id', '=', 6)
+        ->select('ledgers.id', 
+        'ledgers.ledger_name',
+        'ledgers.billing_name',
+        'ledger_group_id'
+            )
+        ->get();
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
+
+    public function get_student_to_courses_by_id($id)
+    {
+      //$courseRegistration= StudentCourseRegistration::get();
+        $result = DB::table('student_course_registrations')
+        ->join('courses', 'courses.id', '=', 'student_course_registrations.course_id')
+        ->where('student_course_registrations.ledger_id', '=', $id)
+        ->select('student_course_registrations.id', 
+        'student_course_registrations.ledger_id',
+        'student_course_registrations.base_fee',
+        'courses.short_name',
+        'courses.full_name'
+            )
+        ->get();
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
     }
     public function get_all_course_registered_students(){
         $data = Student::has('course_registered')->where('is_student','=',1)->get();
