@@ -131,13 +131,19 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
     Route::group(array('prefix' => 'transactions'), function() {
         Route::get("/all",[TransactionController::class, 'get_all_transactions']);
         Route::get("/feesCharged",[TransactionController::class, 'get_all_fees_charged_transactions']);
-
+        
         Route::get("/dues/studentId/{id}",[TransactionController::class, 'get_total_dues_by_student_id']);
 
         Route::get("/dues/SCRId/{id}",[TransactionController::class, 'get_student_due_by_student_course_registration_id']);
 
-
+        //----- Nanda gopal code api -------------
+        //Get all Fees charge 
+        Route::get("/allFeesCharged",[TransactionController::class, 'get_all_feeCharge']);
+        // End Nanda gopal code api
         //saving fees charged
+
+
+
         Route::post("/feesCharged",[TransactionController::class, 'save_fees_charge']);
 
         //saving monthly fees charged
@@ -230,6 +236,10 @@ Route::group(array('prefix' => 'dev'), function() {
 
         Route::get("/dues/SCRId/{id}",[TransactionController::class, 'get_student_due_by_student_course_registration_id']);
 
+         //----- Nanda gopal code api -------------
+        //Get all Fees charge 
+        Route::get("/allFeesCharged",[TransactionController::class, 'get_all_feeCharge']);
+        // End Nanda gopal code api
 
         //saving fees charged
         Route::post("/feesCharged",[TransactionController::class, 'save_fees_charge']);
