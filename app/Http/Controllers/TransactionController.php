@@ -49,6 +49,35 @@ class TransactionController extends ApiController
     //saving fees charging to student
     public function save_fees_charge(Request $request)
     {
+        /*
+         * Sample JSON DATA
+         *      {
+                "transactionMaster": {
+                    "userId": 1,
+                    "transactionDate": "2022-04-21",
+                    "studentCourseRegistrationId": 16,
+                    "comment": "No comment",
+                    "feesYear": 2022,
+                    "feesMonth": 3
+                },
+                "transactionDetails": [
+                    {
+                        "ledgerId": 19,
+                        "transactionTypeId": 1,
+                        "amount": 310
+                    },
+                    {
+                        "ledgerId": 10,
+                        "transactionTypeId": 2,
+                        "amount": 315
+                    }
+                ]
+               }
+         *
+         *
+         * */
+
+
         $input=($request->json()->all());
 
         $validator = Validator::make($input,[
