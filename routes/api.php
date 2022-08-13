@@ -138,7 +138,10 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
 
         //----- Nanda gopal code api -------------
         //Get all Fees charge 
+        Route::get("/getFeeCharge/{id}",[TransactionController::class, 'get_feeCharge_by_id']);
         Route::get("/allFeesCharged",[TransactionController::class, 'get_all_feeCharge']);
+
+        Route::patch("/updateFeesCharged/{id}",[TransactionController::class, 'update_fees_charge']);
         // End Nanda gopal code api
         //saving fees charged
 
@@ -239,6 +242,7 @@ Route::group(array('prefix' => 'dev'), function() {
 
          //----- Nanda gopal code api -------------
         //Get all Fees charge 
+        Route::get("/getFeeCharge/{id}",[TransactionController::class, 'get_feeCharge_by_id']);
         Route::get("/allFeesCharged",[TransactionController::class, 'get_all_feeCharge']);
         // End Nanda gopal code api
 
