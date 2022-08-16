@@ -258,137 +258,45 @@ class TransactionController extends ApiController
      {
          $input=($request->json()->all());
  
-         $validator = Validator::make($input,[
-             'transactionMaster' => 'required',
-             'transactionDetails' => ['required',function($attribute, $value, $fail){
-                 $dr=0;
-                 $cr=0;
- 
-                 foreach ($value as $v ){
- 
-                     /*
-                      * This is a fees charging transaction, hence only a student can be debited
-                      * */
-                     if($v['transactionTypeId']==1){
-                         $student = Ledger::find($v['ledgerId']);
-                         if(!$student){
-                             return $fail($v['ledgerId']." this ledger does not exist");
-                         }
-                         if($student->is_student==0){
-                             return $fail("Only student can be Debited");
-                         }
-                     }
-                     /*
-                      * This is a fees charging transaction, hence only fees ca be credited
-                      * */
- 
-                     if($v['transactionTypeId']==2){
-                         $ledger = Ledger::find($v['ledgerId']);
-                         if(!$ledger){
-                             return $fail($v['ledgerId']." this ledger does not exist");
-                         }
-                         if($ledger->ledger_group_id!=6){
-                             return $fail("This is not belongs to income ledger like fees");
-                         }
-                     }
- 
- 
-                     if(!($v['transactionTypeId']==1 || $v['transactionTypeId']==2)){
-                         return $fail("Transaction type id is incorrect");
-                     }
-                     if($v['transactionTypeId']==1){
-                         $dr=$dr+$v['amount'];
-                     }
-                     if($v['transactionTypeId']==2){
-                         $cr=$cr+$v['amount'];
-                     }
-                 }
- 
-                 if($dr!=$cr){
-                     $fail("As per accounting rule Debit({$dr})  and Credit({$cr}) should be same");
-                 }
- 
- 
-             }],
-         ]);
-         if($validator->fails()){
-             return response()->json(['success'=>0,'data'=>null,'error'=>$validator->messages()], 200,[],JSON_NUMERIC_CHECK);
-         }
+        
  
          $input=($request->json()->all());
          $input_transaction_master=(object)($input['transactionMaster']);
          $input_transaction_details=($input['transactionDetails']);
  
          //validation
-         $rules = array(
-             'userId'=>'required|exists:users,id',
-             'transactionDate' => 'bail|required|date_format:Y-m-d',
-             'studentCourseRegistrationId' => ['bail','required',
-                 function($attribute, $value, $fail){
-                     $StudentCourseRegistration=StudentCourseRegistration::where('id', $value)->where('is_completed','=',0)->first();
-                     if(!$StudentCourseRegistration){
-                         $fail($value.' is not a valid Course Registration Number');
-                     }
-                 }],
-         );
-         $messages = array(
-             'transactionDate.required'=>'Transaction Date is required',
-             'transactionDate.date_format'=>'Date format should be yyyy-mm-dd',
-         );
- 
-         $validator = Validator::make($input['transactionMaster'],$rules,$messages );
- 
- 
-         if ($validator->fails()) {
-             return response()->json(['position'=>1,'success'=>0,'data'=>null,'error'=>$validator->messages()], 406,[],JSON_NUMERIC_CHECK);
-         }
- 
-         //details verification
-         //validation
-         $rules = array(
-             "*.transactionTypeId"=>'required|in:1,2'
-         );
-         $validator = Validator::make($input['transactionDetails'],$rules,$messages );
-         if ($validator->fails()) {
-             return response()->json(['position'=>1,'success'=>0,'data'=>null,'error'=>$validator->messages()], 406,[],JSON_NUMERIC_CHECK);
-         }
-         DB::beginTransaction();
+        DB::beginTransaction();
          try{
              $result_array=array();
-             $accounting_year = get_accounting_year($input_transaction_master->transactionDate);
-             $voucher="Fees Charged";
-             $customVoucher=CustomVoucher::where('voucher_name','=',$voucher)->where('accounting_year',"=",$accounting_year)->first();
-             if($customVoucher) {
-                 //already exist
-                 $customVoucher->last_counter = $customVoucher->last_counter + 1;
-                 $customVoucher->save();
-             }else{
-                 //fresh entry
-                 $customVoucher= new CustomVoucher();
-                 $customVoucher->voucher_name=$voucher;
-                 $customVoucher->accounting_year= $accounting_year;
-                 $customVoucher->last_counter=1;
-                 $customVoucher->delimiter='-';
-                 $customVoucher->prefix='FEES';
-                 $customVoucher->save();
+             
+             // ------ delete record ---------
+             $tran_details=TransactionDetail::where('transaction_master_id',$id)->delete();
+             if(!$tran_details){
+                return response()->json(['success'=>1,'data'=>'Sorry Data Not Deleted:'.$id], 200,[],JSON_NUMERIC_CHECK);
              }
              //adding Zeros before number
-             $counter = str_pad($customVoucher->last_counter,5,"0",STR_PAD_LEFT);
- 
+             
              //creating sale bill number
-             $transaction_number = $customVoucher->prefix.'-'.$counter."-".$accounting_year;
-             $result_array['transaction_number']=$transaction_number;
+            
  
              //saving transaction master
-             $transaction_master= new TransactionMaster();
-             $transaction_master->voucher_type_id = 9; // 9 is the voucher_type_id in voucher_types table for Fees Charged Journal Voucher
-             $transaction_master->transaction_number = $transaction_number;
-             $transaction_master->transaction_date = $input_transaction_master->transactionDate;
-             $transaction_master->student_course_registration_id = $input_transaction_master->studentCourseRegistrationId;
-             $transaction_master->comment = $input_transaction_master->comment;
-             $transaction_master->fees_year = $input_transaction_master->feesYear;
-             $transaction_master->fees_month = $input_transaction_master->feesMonth;
+             //$transaction_master= new TransactionMaster();
+             //$transaction_master->voucher_type_id = 9; // 9 is the voucher_type_id in voucher_types table for Fees Charged Journal Voucher
+             //$transaction_master->transaction_number = $transaction_number;
+
+
+             $transaction_master=TransactionMaster::find($id);
+             if($input_transaction_master->transactionDate){
+                $transaction_master->transaction_date = $input_transaction_master->transactionDate;
+             }
+             if($input_transaction_master->studentCourseRegistrationId){
+                $transaction_master->student_course_registration_id = $input_transaction_master->studentCourseRegistrationId;
+             }
+             if($input_transaction_master->comment){
+                $transaction_master->comment = $input_transaction_master->comment;
+             }
              $transaction_master->save();
+
              $result_array['transaction_master']=$transaction_master;
              $transaction_details=array();
              foreach($input_transaction_details as $transaction_detail){
@@ -403,15 +311,7 @@ class TransactionController extends ApiController
              }
              $result_array['transaction_details']=$transaction_details;
 
-             // ------ delete record ---------
-             $tran_details=TransactionDetail::where('transaction_master_id',$id)->delete();
-
-             $tran_master=TransactionMaster::where('id',$id)->delete();
-
-             if(!$tran_master){
-                return response()->json(['success'=>1,'data'=>'Sorry Data Not Deleted:'.$id], 200,[],JSON_NUMERIC_CHECK);
-             }
-             //-------- end code ----------
+            
              DB::commit();
  
          }catch(\Exception $e){
