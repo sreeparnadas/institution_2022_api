@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\RequiredIf;
+use App\Models\TransactionDetail;
+use App\Models\TransactionMaster;
 
 class StudentCourseRegistrationController extends Controller
 {
@@ -24,10 +26,16 @@ class StudentCourseRegistrationController extends Controller
     {
         //$courseRegistration= StudentCourseRegistration::get();
         $result = DB::table('student_course_registrations')
+            ->join('transaction_masters', 'transaction_masters.student_course_registration_id', '=', 'student_course_registrations.id')
+            ->join('transaction_details', 'transaction_details.transaction_master_id', '=', 'transaction_masters.id')
             ->join('courses', 'courses.id', '=', 'student_course_registrations.course_id')
             ->join('ledgers', 'ledgers.id', '=', 'student_course_registrations.ledger_id')
             ->join('duration_types', 'duration_types.id', '=', 'student_course_registrations.duration_type_id')
             ->select('student_course_registrations.id', 
+            'student_course_registrations.ledger_id',
+            'student_course_registrations.course_id',
+            DB::raw('transaction_masters.id as transaction_masters_id'),
+            DB::raw('transaction_details.id as transaction_details_id'),
             'ledgers.ledger_name',
             'ledgers.billing_name',
             'courses.course_code',
@@ -38,6 +46,7 @@ class StudentCourseRegistrationController extends Controller
             'student_course_registrations.joining_date',
             'student_course_registrations.effective_date',
             'student_course_registrations.actual_course_duration',
+            'student_course_registrations.duration_type_id',
             'duration_types.duration_name'
                )
             ->get();
@@ -58,6 +67,9 @@ class StudentCourseRegistrationController extends Controller
             }
          * */
 
+        $input=($request->json()->all());
+        //$input_transaction_master=(object)($input['transactionMaster']);
+        $input_transaction_details=($input['transactionDetails']);
 
         $rules = array(
             'courseId' => 'bail|required|exists:courses,id',
@@ -136,8 +148,60 @@ class StudentCourseRegistrationController extends Controller
             $courseRegistration->discount_allowed= $request->input('discountAllowed');
             $courseRegistration->joining_date= $joiningDate;
             $courseRegistration->effective_date= $request->input('effectiveDate');
+            $courseRegistration->actual_course_duration= $request->input('actual_course_duration');
+            $courseRegistration->duration_type_id= $request->input('duration_type_id');
             $courseRegistration->is_started= $request->input('isStarted');
             $courseRegistration->save();
+
+            //---------------------------------------------------------
+            $result_array=array();
+            $accounting_year = get_accounting_year($joiningDate);
+            $voucher="Fees Charged";
+            $customVoucher=CustomVoucher::where('voucher_name','=',$voucher)->where('accounting_year',"=",$accounting_year)->first();
+            if($customVoucher) {
+                //already exist
+                $customVoucher->last_counter = $customVoucher->last_counter + 1;
+                $customVoucher->save();
+            }else{
+                //fresh entry
+                $customVoucher= new CustomVoucher();
+                $customVoucher->voucher_name=$voucher;
+                $customVoucher->accounting_year= $accounting_year;
+                $customVoucher->last_counter=1;
+                $customVoucher->delimiter='-';
+                $customVoucher->prefix='FEES';
+                $customVoucher->save();
+            }
+            //adding Zeros before number
+            $counter = str_pad($customVoucher->last_counter,5,"0",STR_PAD_LEFT);
+
+            //creating sale bill number
+            $transaction_number = $customVoucher->prefix.'-'.$counter."-".$accounting_year;
+            $result_array['transaction_number']=$transaction_number;
+
+             //saving transaction master
+             $transaction_master= new TransactionMaster();
+             $transaction_master->voucher_type_id = 9; // 9 is the voucher_type_id in voucher_types table for Fees Charged Journal Voucher
+             $transaction_master->transaction_number = $transaction_number;
+             $transaction_master->transaction_date =  $joiningDate;
+             $transaction_master->student_course_registration_id = $courseRegistration->id;
+             /* $transaction_master->comment = $input_transaction_master->comment; */
+             $transaction_master->fees_year =  $request->input('feesYear');
+             $transaction_master->fees_month = $request->input('feesMonth');
+             $transaction_master->save();
+             $result_array['transaction_master']=$transaction_master;
+             $transaction_details=array();
+             foreach($input_transaction_details as $transaction_detail){
+                 $detail = (object)$transaction_detail;
+                 $td = new TransactionDetail();
+                 $td->transaction_master_id = $transaction_master->id;
+                 $td->ledger_id = $request->input('studentId');
+                 $td->transaction_type_id = 2;
+                 $td->amount = $request->input('baseFee');
+                 $td->save();
+                 $transaction_details[]=$td;
+             }
+             $result_array['transaction_details']=$transaction_details;
             DB::commit();
 
         }catch(\Exception $e){
@@ -149,6 +213,8 @@ class StudentCourseRegistrationController extends Controller
     }
     public function update(Request $request)
     {
+        //$input_transaction_details=($input['transactionDetails']);
+
         $studentCourseRegistrations= new StudentCourseRegistration();
         $studentCourseRegistrations= StudentCourseRegistration::find($request->input('id'));
         $studentCourseRegistrations->reference_number=$request->input('reference_number');
@@ -162,9 +228,28 @@ class StudentCourseRegistrationController extends Controller
         $studentCourseRegistrations->actual_course_duration=$request->input('actual_course_duration');
         $studentCourseRegistrations->duration_type_id=$request->input('duration_type_id');
         $studentCourseRegistrations->is_started=$request->input('is_started');
-        $studentCourseRegistrations->is_started=$request->input('is_started');
         $studentCourseRegistrations->save();
+        
+        //------------- update code of Transaction Master  code ---------------------
+        $transaction_master=TransactionMaster::find($id);
+        if($request->input('joining_date')){
+           $transaction_master->transaction_date = $request->input('joining_date');
+        }
+        $transaction_master->save();
 
+       
+         //------------- update code of Transaction Details code ---------------------
+         $transactionDetail=TransactionDetail::find($transactionDetailsId);
+            
+         if($request->input('studentId')){
+             $transactionDetail->ledger_id = $request->input('studentId');
+         }
+         if($request->input('baseFee')){
+            $transactionDetail->amount = $request->input('baseFee');
+        }
+         $transactionDetail->save();
+       
+        $result_array['transaction_details']=$transactionDetail;
         return response()->json(['success'=>1,'data'=> $studentCourseRegistrations], 200,[],JSON_NUMERIC_CHECK);
 
     }
