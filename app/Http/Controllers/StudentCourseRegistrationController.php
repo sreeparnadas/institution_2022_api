@@ -27,7 +27,6 @@ class StudentCourseRegistrationController extends Controller
         //$courseRegistration= StudentCourseRegistration::get();
         $result = DB::table('student_course_registrations')
             ->join('transaction_masters', 'transaction_masters.student_course_registration_id', '=', 'student_course_registrations.id')
-            ->join('transaction_details', 'transaction_details.transaction_master_id', '=', 'transaction_masters.id')
             ->join('courses', 'courses.id', '=', 'student_course_registrations.course_id')
             ->join('ledgers', 'ledgers.id', '=', 'student_course_registrations.ledger_id')
             ->join('duration_types', 'duration_types.id', '=', 'student_course_registrations.duration_type_id')
@@ -35,7 +34,6 @@ class StudentCourseRegistrationController extends Controller
             'student_course_registrations.ledger_id',
             'student_course_registrations.course_id',
             DB::raw('transaction_masters.id as transaction_masters_id'),
-            DB::raw('transaction_details.id as transaction_details_id'),
             'ledgers.ledger_name',
             'ledgers.billing_name',
             'courses.course_code',
@@ -195,9 +193,9 @@ class StudentCourseRegistrationController extends Controller
                  $detail = (object)$transaction_detail;
                  $td = new TransactionDetail();
                  $td->transaction_master_id = $transaction_master->id;
-                 $td->ledger_id = $request->input('studentId');
-                 $td->transaction_type_id = 2;
-                 $td->amount = $request->input('baseFee');
+                 $td->ledger_id = $detail->ledgerId;
+                 $td->transaction_type_id = $detail->transactionTypeId;
+                 $td->amount = $detail->amount;
                  $td->save();
                  $transaction_details[]=$td;
              }
@@ -213,43 +211,62 @@ class StudentCourseRegistrationController extends Controller
     }
     public function update(Request $request)
     {
-        //$input_transaction_details=($input['transactionDetails']);
+        $input=($request->json()->all());
+        $input_transaction_details=($input['transactionDetails']);
+
+        if($request->has('joiningDate')) {
+            $joiningDate = $request->input('joiningDate');
+        }else{
+            $joiningDate=Carbon::now()->format('Y-m-d');
+        }
+       
+        $transactionMasterID=$request->input('transactionMasterId');
+
+          // ------ delete record ---------
+          $tran_details=TransactionDetail::where('transaction_master_id',$transactionMasterID)->delete();
+          if(!$tran_details){
+              return response()->json(['success'=>1,'data'=>'Sorry Data Not Deleted:'.$transactionMasterID], 200,[],JSON_NUMERIC_CHECK);
+          }
 
         $studentCourseRegistrations= new StudentCourseRegistration();
-        $studentCourseRegistrations= StudentCourseRegistration::find($request->input('id'));
-        $studentCourseRegistrations->reference_number=$request->input('reference_number');
-        $studentCourseRegistrations->ledger_id=$request->input('ledger_id');
-        $studentCourseRegistrations->course_id=$request->input('course_id');
-        $studentCourseRegistrations->base_fee=$request->input('base_fee');
-        $studentCourseRegistrations->discount_allowed=$request->input('discount_allowed');
-        $studentCourseRegistrations->joining_date=$request->input('joining_date');
-        $studentCourseRegistrations->effective_date=$request->input('effective_date');
-        $studentCourseRegistrations->completion_date=$request->input('completion_date');
+        $studentCourseRegistrations= StudentCourseRegistration::find($request->input('studentToCourseID'));
+        $studentCourseRegistrations->ledger_id=$request->input('studentId');
+        $studentCourseRegistrations->course_id=$request->input('courseId');
+        $studentCourseRegistrations->base_fee=$request->input('baseFee');
+        $studentCourseRegistrations->discount_allowed=$request->input('discountAllowed');
+        $studentCourseRegistrations->joining_date=$joiningDate;
+        $studentCourseRegistrations->effective_date=$request->input('effectiveDate');
         $studentCourseRegistrations->actual_course_duration=$request->input('actual_course_duration');
         $studentCourseRegistrations->duration_type_id=$request->input('duration_type_id');
-        $studentCourseRegistrations->is_started=$request->input('is_started');
+       
         $studentCourseRegistrations->save();
         
+       
         //------------- update code of Transaction Master  code ---------------------
-        $transaction_master=TransactionMaster::find($id);
+        $transaction_master=TransactionMaster::find($transactionMasterID);
         if($request->input('joining_date')){
-           $transaction_master->transaction_date = $request->input('joining_date');
+           $transaction_master->transaction_date =  $joiningDate;
         }
         $transaction_master->save();
 
        
          //------------- update code of Transaction Details code ---------------------
-         $transactionDetail=TransactionDetail::find($transactionDetailsId);
-            
-         if($request->input('studentId')){
-             $transactionDetail->ledger_id = $request->input('studentId');
-         }
-         if($request->input('baseFee')){
-            $transactionDetail->amount = $request->input('baseFee');
-        }
-         $transactionDetail->save();
+         $result_array['transaction_master']=$transaction_master;
+             $transaction_details=array();
+             foreach($input_transaction_details as $transaction_detail){
+                 $detail = (object)$transaction_detail;
+                 $td = new TransactionDetail();
+                 $td->transaction_master_id = $transactionMasterID;
+                 $td->ledger_id = $detail->ledgerId;
+                 $td->transaction_type_id = $detail->transactionTypeId;
+                 $td->amount = $detail->amount;
+                 $td->save();
+                 $transaction_details[]=$td;
+             }
        
-        $result_array['transaction_details']=$transactionDetail;
+            $result_array['transaction_details']=$td;
+
+           
         return response()->json(['success'=>1,'data'=> $studentCourseRegistrations], 200,[],JSON_NUMERIC_CHECK);
 
     }
