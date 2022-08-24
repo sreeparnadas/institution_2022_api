@@ -115,6 +115,8 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
 
     //CourseRegistration
     Route::get("getStudentCourseRegistrations",[StudentCourseRegistrationController::class, 'getStudentToCourseRegistration']);
+    Route::get("getCourseId/{id}",[StudentCourseRegistrationController::class, 'getCourseIdByStudentToCourseRegistrationId']);
+    Route::post("getRegisterCourseByStudentId",[StudentCourseRegistrationController::class, 'getStudentToCourseRegistrationById']);
     Route::post("studentCourseRegistrations",[StudentCourseRegistrationController::class, 'store']);
     Route::get("studentCourseRegistrations",[StudentCourseRegistrationController::class, 'index']);
     Route::delete("studentCourseRegistrations/{id}",[StudentCourseRegistrationController::class, 'destroy']);
@@ -140,6 +142,8 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
         //Get all Fees charge 
         Route::get("/getFeeCharge/{id}",[TransactionController::class, 'get_feeCharge_by_id']);
         Route::get("/allFeesCharged",[TransactionController::class, 'get_all_feeCharge']);
+
+        Route::get("/getTranMasterId/{id}",[TransactionController::class, 'get_transaction_masterId_by_student_id']);
 
         Route::patch("/updateFeesCharged/{id}",[TransactionController::class, 'update_fees_charge']);
         // End Nanda gopal code api

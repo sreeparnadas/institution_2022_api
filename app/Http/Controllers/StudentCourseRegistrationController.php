@@ -22,6 +22,14 @@ class StudentCourseRegistrationController extends Controller
         $courseRegistration= StudentCourseRegistration::get();
         return response()->json(['success'=>1,'data'=> $courseRegistration], 200,[],JSON_NUMERIC_CHECK);
     }
+    public function getCourseIdByStudentToCourseRegistrationId($id)
+    {
+        $courseRegistration= DB::table('student_course_registrations')
+        ->where('student_course_registrations.id', '=', $id)
+        ->select('student_course_registrations.ledger_id', 
+        'student_course_registrations.course_id') ->get();
+        return response()->json(['success'=>1,'data'=> $courseRegistration], 200,[],JSON_NUMERIC_CHECK);
+    }
     public function getStudentToCourseRegistration()
     {
         //$courseRegistration= StudentCourseRegistration::get();
@@ -51,7 +59,38 @@ class StudentCourseRegistrationController extends Controller
         return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
     }
 
-   
+    public function getStudentToCourseRegistrationById(Request $request)
+    {
+        $ledgerId = $request->input('ledger_id');
+        $courseId = $request->input('course_id');
+        //$courseRegistration= StudentCourseRegistration::get();
+        $result = DB::table('student_course_registrations')
+            ->join('transaction_masters', 'transaction_masters.student_course_registration_id', '=', 'student_course_registrations.id')
+            ->join('courses', 'courses.id', '=', 'student_course_registrations.course_id')
+            ->join('ledgers', 'ledgers.id', '=', 'student_course_registrations.ledger_id')
+            ->join('duration_types', 'duration_types.id', '=', 'student_course_registrations.duration_type_id')
+            ->where('student_course_registrations.ledger_id', '=', $ledgerId)
+            ->where('student_course_registrations.course_id', '=', $courseId)
+            ->select('student_course_registrations.id', 
+            'student_course_registrations.ledger_id',
+            'student_course_registrations.course_id',
+            DB::raw('transaction_masters.id as transaction_masters_id'),
+            'ledgers.ledger_name',
+            'ledgers.billing_name',
+            'courses.course_code',
+            'courses.short_name',
+            'courses.full_name',
+            'student_course_registrations.base_fee',
+            'student_course_registrations.discount_allowed',
+            'student_course_registrations.joining_date',
+            'student_course_registrations.effective_date',
+            'student_course_registrations.actual_course_duration',
+            'student_course_registrations.duration_type_id',
+            'duration_types.duration_name'
+               )
+            ->get();
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
     public function store(Request $request)
     {
         /*

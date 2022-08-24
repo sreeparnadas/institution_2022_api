@@ -63,6 +63,15 @@ class TransactionController extends ApiController
     }
     // End Nanda gopal code
 
+    public function get_transaction_masterId_by_student_id($id)
+    {
+        $transactionMaster= DB::table('transaction_masters')
+        ->where('transaction_masters.student_course_registration_id', '=', $id)
+        ->select('transaction_masters.transaction_number', 
+        'transaction_masters.id') ->get();
+        return response()->json(['success'=>1,'data'=> $transactionMaster], 200,[],JSON_NUMERIC_CHECK);
+    }
+
     public function get_all_transactions(){
         $transactions = TransactionMaster::get();
         return response()->json(['success'=>0,'data'=>TransactionMasterResource::collection($transactions)], 200,[],JSON_NUMERIC_CHECK);
