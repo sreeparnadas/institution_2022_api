@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Validator;
 class TransactionController extends ApiController
 {
     //----- Nanda gopal code -------------
-    public function get_all_feeCharge()
+   /*  public function get_all_feeCharge()
     {
         //$courseRegistration= StudentCourseRegistration::get();
         $result = DB::table('transaction_masters')
@@ -36,6 +36,19 @@ class TransactionController extends ApiController
         'courses.full_name'
           )
            ->get();
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    } */
+    public function get_all_feeCharge()
+    {
+        //$courseRegistration= StudentCourseRegistration::get();
+        $result = TransactionMaster::
+        join('transaction_details', 'transaction_details.transaction_master_id', '=', 'transaction_masters.id')
+        ->where('transaction_details.transaction_type_id', '=', 2)
+        ->select('student_course_registration_id',
+        DB::raw('sum(transaction_details.amount) as fees_total')
+        )
+        -> groupBy('student_course_registration_id')
+        ->get();
         return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
     }
 
