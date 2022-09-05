@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\FeesChargedResource;
 use App\Http\Resources\TransactionMasterResource;
 use App\Models\CustomVoucher;
 use App\Models\Ledger;
@@ -49,7 +50,7 @@ class TransactionController extends ApiController
         )
         -> groupBy('student_course_registration_id')
         ->get();
-        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+        return response()->json(['success'=>1,'data'=> FeesChargedResource::collection($result)], 200,[],JSON_NUMERIC_CHECK);
     }
 
     public function get_feeCharge_by_id($id)
@@ -83,6 +84,8 @@ class TransactionController extends ApiController
         ->select('transaction_masters.transaction_number', 
         'transaction_masters.id') ->get();
         return response()->json(['success'=>1,'data'=> $transactionMaster], 200,[],JSON_NUMERIC_CHECK);
+
+        return response()->json(['success'=>0,'data'=>TransactionMasterResource::collection($transactions)], 200,[],JSON_NUMERIC_CHECK);
     }
 
     public function get_all_transactions(){
