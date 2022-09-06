@@ -16,11 +16,13 @@ class FeesChargedResource extends JsonResource
     public function toArray($request)
     {
         $student=StudentCourseRegistration::findOrFail($this->student_course_registration_id)->student;
+        $course=StudentCourseRegistration::findOrFail($this->student_course_registration_id)->course;
 
         return [
-            'StudentCourseRegistrationId'=>$this->student_course_registration_id,
-            'FeesTotal'=>$this->fees_total,
-            'student'=>$student
+            'studentCourseRegistrationId'=>$this->student_course_registration_id,
+            'feesTotal'=>$this->fees_total,
+            'studentName'=>$student->ledger_name,
+            'courseName'=>$course->full_name
         ];
     }
 }
