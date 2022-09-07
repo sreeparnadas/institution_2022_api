@@ -52,6 +52,19 @@ class TransactionController extends ApiController
         ->get();
         return response()->json(['success'=>1,'data'=> FeesChargedResource::collection($result)], 200,[],JSON_NUMERIC_CHECK);
     }
+    public function get_fees_charge_details_by_id($id){
+        $result = TransactionMaster::
+        join('transaction_details', 'transaction_details.transaction_master_id', '=', 'transaction_masters.id')
+        ->join('ledgers', 'ledgers.id', '=', 'transaction_details.ledger_id')
+        ->where('student_course_registration_id', '=', $id)
+        ->where('transaction_details.transaction_type_id', '=',2)
+        ->select('student_course_registration_id'
+        ,'transaction_number'
+        ,'ledgers.ledger_name'
+        ,'transaction_details.amount')
+        ->get();
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
 
     public function get_feeCharge_by_id($id)
     {
