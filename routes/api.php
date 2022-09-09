@@ -12,6 +12,8 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\DurationTypeController;
 use App\Http\Controllers\StudentQueryController;
+use App\Http\Controllers\BijoyaRegistrationController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -262,5 +264,11 @@ Route::group(array('prefix' => 'dev'), function() {
 
         Route::get("/billDetails/id/{id}",[TransactionController::class, 'get_bill_details_by_id']);
     });
+
+
+    //bijoya registration
+
+    Route::post("/bijoyaRegistrationForm",[BijoyaRegistrationController::class, 'saveStudentInfo']);
+    Route::get("/bijoyaRegistrationForm",[BijoyaRegistrationController::class, 'getStudentInfo']);
 });
 
