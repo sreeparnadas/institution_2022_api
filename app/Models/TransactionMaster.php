@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -63,5 +64,11 @@ class TransactionMaster extends Model
     }
     public function parent_transaction() {
         return $this->belongsTo(TransactionMaster::class, 'reference_transaction_master_id');
+    }
+    public function getTransactionDateAttribute($value)
+    {
+//        return changeDateFormUTCtoLocal($this->attributes['transaction_date']);
+        $date=$this->attributes['transaction_date'];
+        return Carbon::createFromFormat('Y-m-d', $date)->format('Y-m-d');
     }
 }

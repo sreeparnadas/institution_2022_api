@@ -65,6 +65,7 @@ class TransactionController extends ApiController
         ->where('transaction_details.transaction_type_id', '=',2)
         ->select('student_course_registration_id'
         ,'transaction_masters.id'
+        ,'transaction_masters.transaction_date'
         ,'transaction_masters.transaction_number'
         ,'ledgers.ledger_name'
         ,'transaction_details.amount')
