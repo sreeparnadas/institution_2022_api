@@ -5,6 +5,11 @@ namespace App\Http\Resources;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\StudentCourseRegistration;
 
+/**
+ * @property mixed fees_details
+ * @property mixed fees_total
+ * @property mixed student_course_registration_id
+ */
 class FeesChargedResource extends JsonResource
 {
     /**
@@ -22,7 +27,8 @@ class FeesChargedResource extends JsonResource
             'studentCourseRegistrationId'=>$this->student_course_registration_id,
             'feesTotal'=>$this->fees_total,
             'studentName'=>$student->ledger_name,
-            'courseName'=>$course->full_name
+            'courseName'=>$course->full_name,
+            'feesDetails'=> $this->fees_details
         ];
     }
 }

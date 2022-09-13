@@ -26,7 +26,7 @@ class TransactionController extends ApiController
         ->join('student_course_registrations', 'student_course_registrations.id', '=', 'transaction_masters.student_course_registration_id')
         ->join('courses', 'courses.id', '=', 'student_course_registrations.course_id')
         ->where('transaction_types.id', '=', 1)
-        ->select( 
+        ->select(
         'transaction_masters.id',
         'ledgers.ledger_name',
         'transaction_masters.transaction_number',
@@ -50,7 +50,12 @@ class TransactionController extends ApiController
         )
         -> groupBy('student_course_registration_id')
         ->get();
+        foreach ($result as $row) {
+            $row->setAttribute('fees_details', $this->get_fees_charge_details_by_id($row->student_course_registration_id));
+        }
+
         return response()->json(['success'=>1,'data'=> FeesChargedResource::collection($result)], 200,[],JSON_NUMERIC_CHECK);
+//        return response()->json(['success'=>1,'data'=>$result], 200,[],JSON_NUMERIC_CHECK);
     }
     public function get_fees_charge_details_by_id($id){
         $result = TransactionMaster::
@@ -64,7 +69,8 @@ class TransactionController extends ApiController
         ,'ledgers.ledger_name'
         ,'transaction_details.amount')
         ->get();
-        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+        return $result;
+//        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
     }
 
     public function get_feeCharge_by_id($id)
@@ -76,7 +82,7 @@ class TransactionController extends ApiController
         ->join('student_course_registrations', 'student_course_registrations.id', '=', 'transaction_masters.student_course_registration_id')
         ->where('transaction_masters.id', '=', $id)
         ->where('transaction_details.transaction_type_id', '=', 2)
-        ->select( 
+        ->select(
         'transaction_masters.id',
         'ledgers.ledger_name',
         'transaction_masters.student_course_registration_id',
@@ -95,7 +101,7 @@ class TransactionController extends ApiController
     {
         $transactionMaster= DB::table('transaction_masters')
         ->where('transaction_masters.student_course_registration_id', '=', $id)
-        ->select('transaction_masters.transaction_number', 
+        ->select('transaction_masters.transaction_number',
         'transaction_masters.id') ->get();
         return response()->json(['success'=>1,'data'=> $transactionMaster], 200,[],JSON_NUMERIC_CHECK);
 
@@ -325,28 +331,28 @@ class TransactionController extends ApiController
      public function update_fees_charge($id,Request $request)
      {
          $input=($request->json()->all());
- 
-        
- 
+
+
+
          $input=($request->json()->all());
          $input_transaction_master=(object)($input['transactionMaster']);
          $input_transaction_details=($input['transactionDetails']);
- 
+
          //validation
         DB::beginTransaction();
          try{
              $result_array=array();
-             
+
              // ------ delete record ---------
              $tran_details=TransactionDetail::where('transaction_master_id',$id)->delete();
              if(!$tran_details){
                 return response()->json(['success'=>1,'data'=>'Sorry Data Not Deleted:'.$id], 200,[],JSON_NUMERIC_CHECK);
              }
              //adding Zeros before number
-             
+
              //creating sale bill number
-            
- 
+
+
              //saving transaction master
              //$transaction_master= new TransactionMaster();
              //$transaction_master->voucher_type_id = 9; // 9 is the voucher_type_id in voucher_types table for Fees Charged Journal Voucher
@@ -379,14 +385,14 @@ class TransactionController extends ApiController
              }
              $result_array['transaction_details']=$transaction_details;
 
-            
+
              DB::commit();
- 
+
          }catch(\Exception $e){
              DB::rollBack();
              return response()->json(['success'=>0,'exception'=>$e->getMessage()], 500);
          }
- 
+
          return response()->json(['success'=>1,'data'=>new TransactionMasterResource($result_array['transaction_master'])], 200,[],JSON_NUMERIC_CHECK);
      }
     //monthly fees charged
