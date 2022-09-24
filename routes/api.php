@@ -144,12 +144,19 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
         //Get all Fees charge 
         Route::get("/getFeeCharge/{id}",[TransactionController::class, 'get_feeCharge_by_id']);
         Route::get("/allFeesCharged",[TransactionController::class, 'get_all_feeCharge']);
+        Route::get("/allFeesCharged_1",[TransactionController::class, 'get_all_feeCharge_1']);
         Route::get("/feesChargedDetails/{id}",[TransactionController::class, 'get_fees_charge_details_by_id']);
         Route::get("/feesChargedDetailsMain/{id}",[TransactionController::class, 'get_fees_charge_details_main_by_id']);
+
 
         Route::get("/getTranMasterId/{id}",[TransactionController::class, 'get_transaction_masterId_by_student_id']);
 
         Route::patch("/updateFeesCharged/{id}",[TransactionController::class, 'update_fees_charge']);
+
+        // fee charge compeleted-------
+
+         // fee Received Start-------
+        Route::get("/feesChargedReceivedDue/{id}",[TransactionController::class, 'get_feescharge_received_due_list_by_id']);
         // End Nanda gopal code api
         //saving fees charged
 
