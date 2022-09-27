@@ -128,6 +128,43 @@ class CreateAllProceduresAndFunctions extends Migration
           RETURN month_due;
         END
         ');
+
+        DB::unprepared('
+        DROP FUNCTION IF EXISTS institution_db.get_total_fees_charge_by_studentregistration_ledger_id;
+        CREATE FUNCTION institution_db.`get_total_fees_charge_by_studentregistration_ledger_id`(input_studentregistration bigint,input_ledger_id bigint) RETURNS double
+          DETERMINISTIC
+          BEGIN
+              DECLARE temp_total_charged double;
+                set temp_total_charged=0;
+                select sum(transaction_details.amount) into temp_total_charged from transaction_masters
+                inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+                where transaction_masters.student_course_registration_id=input_studentregistration
+                and transaction_details.transaction_type_id=2
+                and transaction_details.ledger_id=input_ledger_id;
+                if isnull(temp_total_charged) then
+                  set temp_total_charged=0;
+                end if;
+                    
+                    RETURN temp_total_charged;
+          END;');
+
+          DB::unprepared('
+          DROP FUNCTION IF EXISTS institution_db.get_total_fees_received_by_studentregistration_ledger_id;
+          CREATE FUNCTION institution_db.`get_total_fees_received_by_studentregistration_ledger_id`(input_studentregistration bigint,input_ledger_id bigint) RETURNS double
+              DETERMINISTIC
+              BEGIN
+                  DECLARE temp_total_received double;
+                  set temp_total_received=0;
+                  select sum(transaction_details.amount) into temp_total_received from transaction_masters
+                  inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+                  where transaction_masters.student_course_registration_id=input_studentregistration
+                  and transaction_details.transaction_type_id=1
+                  and transaction_details.ledger_id=input_ledger_id;
+                  if isnull(temp_total_received) then
+                    set temp_total_received=0;
+                  end if;
+                  RETURN temp_total_received;
+              END;');
     }
 
     public function down()

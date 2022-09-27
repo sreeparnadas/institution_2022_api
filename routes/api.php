@@ -147,7 +147,7 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
         Route::get("/allFeesCharged_1",[TransactionController::class, 'get_all_feeCharge_1']);
         Route::get("/feesChargedDetails/{id}",[TransactionController::class, 'get_fees_charge_details_by_id']);
         Route::get("/feesChargedDetailsMain/{id}",[TransactionController::class, 'get_fees_charge_details_main_by_id']);
-
+        Route::get("/feesDueList/{id}",[TransactionController::class, 'get_fees_due_list_by_id']);
 
         Route::get("/getTranMasterId/{id}",[TransactionController::class, 'get_transaction_masterId_by_student_id']);
 

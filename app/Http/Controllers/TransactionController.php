@@ -131,6 +131,20 @@ class TransactionController extends ApiController
         //return $result;
         return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
     }
+    public function get_fees_due_list_by_id($id){
+        $result = DB::select('select distinct transaction_masters.student_course_registration_id,
+        transaction_details.ledger_id
+        ,ledgers.ledger_name
+        ,get_total_fees_charge_by_studentregistration_ledger_id(transaction_masters.student_course_registration_id,transaction_details.ledger_id) as total_billed
+        ,get_total_fees_received_by_studentregistration_ledger_id(transaction_masters.student_course_registration_id,transaction_details.ledger_id) as total_received
+        from transaction_masters
+        inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+        inner join ledgers ON ledgers.id = transaction_details.ledger_id
+        inner join ledger_groups ON ledger_groups.id = ledgers.ledger_group_id
+        where transaction_masters.student_course_registration_id=21
+        and ledger_groups.id=6');
+       return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
     public function get_feeCharge_by_id($id)
     {
         //$courseRegistration= StudentCourseRegistration::get();
