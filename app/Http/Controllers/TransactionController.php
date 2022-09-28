@@ -141,7 +141,7 @@ class TransactionController extends ApiController
         inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
         inner join ledgers ON ledgers.id = transaction_details.ledger_id
         inner join ledger_groups ON ledger_groups.id = ledgers.ledger_group_id
-        where transaction_masters.student_course_registration_id=21
+        where transaction_masters.student_course_registration_id=60
         and ledger_groups.id=6');
        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
     }
