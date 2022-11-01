@@ -278,5 +278,11 @@ Route::group(array('prefix' => 'dev'), function() {
 
     Route::post("/bijoyaRegistrationForm",[BijoyaRegistrationController::class, 'saveStudentInfo']);
     Route::get("/bijoyaRegistrationForm",[BijoyaRegistrationController::class, 'getStudentInfo']);
+
+
+    //subject
+
+    Route::post("/subject", [SubjectController::class, 'saveSubject']);
+    Route::get("/subject", [SubjectController::class, 'index']);
 });
 

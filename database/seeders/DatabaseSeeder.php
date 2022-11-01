@@ -1304,6 +1304,7 @@ class DatabaseSeeder extends Seeder
 
 
             /**/    ['subject_code'=>'C','subject_short_name'=>'C','subject_full_name'=>'Programming Language C','subject_duration'=>20,'duration_type_id' => '4','subject_description'=>'Programming Language For C'],
+            /**/    ['subject_code'=>'C-S','subject_short_name'=>'CompSc','subject_full_name'=>'Computer Science','subject_duration'=>00,'duration_type_id' => '1','subject_description'=>'Computer Science'],
         ]);
 
 
