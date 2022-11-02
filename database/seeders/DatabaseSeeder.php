@@ -1328,11 +1328,17 @@ class DatabaseSeeder extends Seeder
             ['question_type_name'=>'Descriptive']
         ]);
 
-        $x=Question::create(['question_level_id'=>1,'chapter_id'=>1,'question_type_id'=>1, 'question'=>'Which one of the following is a java keyword?']);
-        Option::create(['question_id'=>$x->id,'option'=>'Switch']);
-        Option::create(['question_id'=>$x->id,'option'=>'While','is_answer'=>1]);
-        Option::create(['question_id'=>$x->id,'option'=>'Void']);
-        Option::create(['question_id'=>$x->id,'option'=>'Public']);
+        $x=Question::create(['question_level_id'=>1,'chapter_id'=>1,'question_type_id'=>1,'question'=>'Consider the following code and choose the correct option:
+        class X { int x; X(int x){x=2;}}
+        class Y extends X{ Y(){} void displayX(){
+        System.out.print(x);}
+        public static void main(String args[]){
+         new Y().displayX();}}']);
+        Option::create(['question_id'=>$x->id,'option'=>'Compiles and display 2','is_answer'=>0]);
+        Option::create(['question_id'=>$x->id,'option'=>'Compiles and runs without any output','is_answer'=>0]);
+        Option::create(['question_id'=>$x->id,'option'=>'Compiles and display 0','is_answer'=>0]);
+        Option::create(['question_id'=>$x->id,'option'=>'Compilation error','is_answer'=>1]);
+        
 
 
         $x=StudentCourseRegistration::create(['ledger_id'=>11,'course_id'=>1,'reference_number'=>1,'base_fee'=>3000,'discount_allowed'=>1200,'joining_date'=>'2019-01-08','effective_date'=>'2019-02-01','completion_date'=>'2019-11-05','is_started'=>1,'is_completed'=>1]);
