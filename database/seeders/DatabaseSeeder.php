@@ -5,6 +5,8 @@ namespace Database\Seeders;
 
 
 
+use App\Models\Chapter;
+use App\Models\QuestionLevel;
 use App\Models\FeesModeType;
 use App\Models\Ledger;
 use App\Models\LedgerGroup;
@@ -1305,8 +1307,17 @@ class DatabaseSeeder extends Seeder
 
             /**/    ['subject_code'=>'C','subject_short_name'=>'C','subject_full_name'=>'Programming Language C','subject_duration'=>20,'duration_type_id' => '4','subject_description'=>'Programming Language For C'],
             /**/    ['subject_code'=>'C-S','subject_short_name'=>'CompSc','subject_full_name'=>'Computer Science','subject_duration'=>00,'duration_type_id' => '1','subject_description'=>'Computer Science'],
+            /**/    ['subject_code'=>'JICSE','subject_short_name'=>'JAVA ICSE','subject_full_name'=>'JAVA for ICSE','subject_duration'=>00,'duration_type_id' => '1','subject_description'=>'JAVA for ICSE'],
+        ]);
+        QuestionLevel::insert([
+            ['level_name'=>'Easy'],
+            ['level_name'=>'Moderate']
         ]);
 
+        Chapter::insert([
+            ['chapter_name'=>'General','subject_id'=>10],
+            ['chapter_name'=>'Operators','subject_id'=>10]
+        ]);
 
         StudentCourseRegistration::create(['ledger_id'=>11,'course_id'=>1,'reference_number'=>1,'base_fee'=>3000,'discount_allowed'=>1200,'joining_date'=>'2019-01-08','effective_date'=>'2019-02-01','completion_date'=>'2019-11-05','is_started'=>1,'is_completed'=>1]);
         StudentCourseRegistration::create(['ledger_id'=>11,'course_id'=>2,'reference_number'=>2,'base_fee'=>6900,'discount_allowed'=>3200,'joining_date'=>'2019-11-28','effective_date'=>'2019-12-01','completion_date'=>'2020-11-05', 'is_started'=>1,'is_completed'=>1]);
