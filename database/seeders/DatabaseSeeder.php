@@ -5,12 +5,18 @@ namespace Database\Seeders;
 
 
 
+use App\Models\Chapter;
+use App\Models\Option;
+use App\Models\Question;
+use App\Models\QuestionLevel;
 use App\Models\FeesModeType;
 use App\Models\Ledger;
 use App\Models\LedgerGroup;
+use App\Models\QuestionType;
 use App\Models\Subject;
 use App\Models\TransactionType;
 use App\Models\VoucherType;
+use Carbon\Traits\Options;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\UserType;
@@ -30,6 +36,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
+        $this->command->info('Adding user type');
         // \App\Models\User::factory(10)->create();
         //person_types table data
         UserType::create(['user_type_name' => 'Owner']);            #1
@@ -1305,11 +1312,38 @@ class DatabaseSeeder extends Seeder
 
             /**/    ['subject_code'=>'C','subject_short_name'=>'C','subject_full_name'=>'Programming Language C','subject_duration'=>20,'duration_type_id' => '4','subject_description'=>'Programming Language For C'],
             /**/    ['subject_code'=>'C-S','subject_short_name'=>'CompSc','subject_full_name'=>'Computer Science','subject_duration'=>00,'duration_type_id' => '1','subject_description'=>'Computer Science'],
+            /**/    ['subject_code'=>'JICSE','subject_short_name'=>'JAVA ICSE','subject_full_name'=>'JAVA for ICSE','subject_duration'=>00,'duration_type_id' => '1','subject_description'=>'JAVA for ICSE'],
+        ]);
+        QuestionLevel::insert([
+            ['level_name'=>'Easy'],
+            ['level_name'=>'Moderate']
         ]);
 
+        Chapter::insert([
+            ['chapter_name'=>'General','subject_id'=>10],
+            ['chapter_name'=>'Operators','subject_id'=>10]
+        ]);
+        QuestionType::insert([
+            ['question_type_name'=>'MCQ'],
+            ['question_type_name'=>'Descriptive']
+        ]);
 
-        StudentCourseRegistration::create(['ledger_id'=>11,'course_id'=>1,'reference_number'=>1,'base_fee'=>3000,'discount_allowed'=>1200,'joining_date'=>'2019-01-08','effective_date'=>'2019-02-01','completion_date'=>'2019-11-05','is_started'=>1,'is_completed'=>1]);
-        StudentCourseRegistration::create(['ledger_id'=>11,'course_id'=>2,'reference_number'=>2,'base_fee'=>6900,'discount_allowed'=>3200,'joining_date'=>'2019-11-28','effective_date'=>'2019-12-01','completion_date'=>'2020-11-05', 'is_started'=>1,'is_completed'=>1]);
+        $x=Question::create(['question_level_id'=>1,'chapter_id'=>1,'question_type_id'=>1,'question'=>'Consider the following code and choose the correct option:
+        class X { int x; X(int x){x=2;}}
+        class Y extends X{ Y(){} void displayX(){
+        System.out.print(x);}
+        public static void main(String args[]){
+         new Y().displayX();}}']);
+        Option::create(['question_id'=>$x->id,'option'=>'Compiles and display 2','is_answer'=>0]);
+        Option::create(['question_id'=>$x->id,'option'=>'Compiles and runs without any output','is_answer'=>0]);
+        Option::create(['question_id'=>$x->id,'option'=>'Compiles and display 0','is_answer'=>0]);
+        Option::create(['question_id'=>$x->id,'option'=>'Compilation error','is_answer'=>1]);
+        
+
+
+        $x=StudentCourseRegistration::create(['ledger_id'=>11,'course_id'=>1,'reference_number'=>1,'base_fee'=>3000,'discount_allowed'=>1200,'joining_date'=>'2019-01-08','effective_date'=>'2019-02-01','completion_date'=>'2019-11-05','is_started'=>1,'is_completed'=>1]);
+        $x=StudentCourseRegistration::create(['ledger_id'=>11,'course_id'=>2,'reference_number'=>2,'base_fee'=>6900,'discount_allowed'=>3200,'joining_date'=>'2019-11-28','effective_date'=>'2019-12-01','completion_date'=>'2020-11-05', 'is_started'=>1,'is_completed'=>1]);
+
         StudentCourseRegistration::create(['ledger_id'=>11,'course_id'=>3,'reference_number'=>3,'base_fee'=>6900,'discount_allowed'=>5200,'joining_date'=>'2020-12-28','effective_date'=>'2020-12-29','completion_date'=>'2021-04-05', 'is_started'=>1,'is_completed'=>1]);
         StudentCourseRegistration::create(['ledger_id'=>11,'course_id'=>4,'reference_number'=>4,'base_fee'=>6900,'discount_allowed'=>5200,'joining_date'=>'2021-04-02','effective_date'=>'2021-04-05','is_started'=>1, 'is_completed'=>0]);
         StudentCourseRegistration::create(['ledger_id'=>12,'course_id'=>4,'reference_number'=>5,'base_fee'=>6900,'discount_allowed'=>5200,'joining_date'=>'2020-02-28','effective_date'=>'2020-03-05','completion_date'=>'2020-11-05', 'is_started'=>1,'is_completed'=>1]);
