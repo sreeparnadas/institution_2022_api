@@ -15,13 +15,14 @@ class CreateSimpleMcqsTable extends Migration
     {
         Schema::create('simple_mcqs', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('question_type_id')->references('id')->on('question_types')->onDelete('cascade');
             $table->foreignId('question_level_id')->references('id')->on('question_levels')->onDelete('cascade');
             $table->foreignId('chapter_id')->references('id')->on('chapters')->onDelete('cascade');
             $table->string('question')->nullable(false)->unique();
-            $table->string('answer1', 50)->nullable(false)->unique();
-            $table->string('answer2', 50)->nullable(false)->unique();
-            $table->string('answer3', 50)->nullable(false)->unique();
-            $table->string('answer4', 50)->nullable(false)->unique();
+            // $table->string('answer1', 50)->nullable(false)->unique();
+            // $table->string('answer2', 50)->nullable(false)->unique();
+            // $table->string('answer3', 50)->nullable(false)->unique();
+            // $table->string('answer4', 50)->nullable(false)->unique();
 
             $table->timestamps();
         });
