@@ -10,6 +10,7 @@ use App\Models\QuestionLevel;
 use App\Models\FeesModeType;
 use App\Models\Ledger;
 use App\Models\LedgerGroup;
+use App\Models\QuestionType;
 use App\Models\Subject;
 use App\Models\TransactionType;
 use App\Models\VoucherType;
@@ -1317,6 +1318,10 @@ class DatabaseSeeder extends Seeder
         Chapter::insert([
             ['chapter_name'=>'General','subject_id'=>10],
             ['chapter_name'=>'Operators','subject_id'=>10]
+        ]);
+        QuestionType::insert([
+            ['question_type_name'=>'MCQ'],
+            ['question_type_name'=>'Descriptive']
         ]);
 
         StudentCourseRegistration::create(['ledger_id'=>11,'course_id'=>1,'reference_number'=>1,'base_fee'=>3000,'discount_allowed'=>1200,'joining_date'=>'2019-01-08','effective_date'=>'2019-02-01','completion_date'=>'2019-11-05','is_started'=>1,'is_completed'=>1]);
