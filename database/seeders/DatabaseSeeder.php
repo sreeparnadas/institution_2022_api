@@ -6,6 +6,8 @@ namespace Database\Seeders;
 
 
 use App\Models\Chapter;
+use App\Models\Option;
+use App\Models\Question;
 use App\Models\QuestionLevel;
 use App\Models\FeesModeType;
 use App\Models\Ledger;
@@ -14,6 +16,7 @@ use App\Models\QuestionType;
 use App\Models\Subject;
 use App\Models\TransactionType;
 use App\Models\VoucherType;
+use Carbon\Traits\Options;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\UserType;
@@ -1325,10 +1328,16 @@ class DatabaseSeeder extends Seeder
             ['question_type_name'=>'Descriptive']
         ]);
 
+        $x=Question::create(['question_level_id'=>1,'chapter_id'=>1,'question_type_id'=>1, 'question'=>'Which one of the following is a java keyword?']);
+        Option::create(['question_id'=>$x->id,'option'=>'Switch']);
+        Option::create(['question_id'=>$x->id,'option'=>'While','is_answer'=>1]);
+        Option::create(['question_id'=>$x->id,'option'=>'Void']);
+        Option::create(['question_id'=>$x->id,'option'=>'Public']);
+
 
         $x=StudentCourseRegistration::create(['ledger_id'=>11,'course_id'=>1,'reference_number'=>1,'base_fee'=>3000,'discount_allowed'=>1200,'joining_date'=>'2019-01-08','effective_date'=>'2019-02-01','completion_date'=>'2019-11-05','is_started'=>1,'is_completed'=>1]);
         $x=StudentCourseRegistration::create(['ledger_id'=>11,'course_id'=>2,'reference_number'=>2,'base_fee'=>6900,'discount_allowed'=>3200,'joining_date'=>'2019-11-28','effective_date'=>'2019-12-01','completion_date'=>'2020-11-05', 'is_started'=>1,'is_completed'=>1]);
-        $this->command->info($x);
+
         StudentCourseRegistration::create(['ledger_id'=>11,'course_id'=>3,'reference_number'=>3,'base_fee'=>6900,'discount_allowed'=>5200,'joining_date'=>'2020-12-28','effective_date'=>'2020-12-29','completion_date'=>'2021-04-05', 'is_started'=>1,'is_completed'=>1]);
         StudentCourseRegistration::create(['ledger_id'=>11,'course_id'=>4,'reference_number'=>4,'base_fee'=>6900,'discount_allowed'=>5200,'joining_date'=>'2021-04-02','effective_date'=>'2021-04-05','is_started'=>1, 'is_completed'=>0]);
         StudentCourseRegistration::create(['ledger_id'=>12,'course_id'=>4,'reference_number'=>5,'base_fee'=>6900,'discount_allowed'=>5200,'joining_date'=>'2020-02-28','effective_date'=>'2020-03-05','completion_date'=>'2020-11-05', 'is_started'=>1,'is_completed'=>1]);
