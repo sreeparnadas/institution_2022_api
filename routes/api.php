@@ -57,6 +57,7 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
 
     //getting question
     Route::get("/questions",[QuestionController::class, 'index']);
+    Route::post("/questions",[QuestionController::class, 'save_question']);
 
     // student related API address placed in a group for better readability
     Route::group(array('prefix' => 'students'), function() {

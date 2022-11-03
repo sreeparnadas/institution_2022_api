@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Option;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
@@ -10,6 +11,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * @property mixed chapter_id
  * @property mixed question_type_id
  * @property mixed question
+ * @property mixed options
  */
 class QuestionResource extends JsonResource
 {
@@ -25,12 +27,14 @@ class QuestionResource extends JsonResource
      */
     public function toArray($request)
     {
+
         return [
             'questionId' => $this->id,
             'questionLevelId' => $this->question_level_id,
             'chapterId' => $this->chapter_id,
             'questionTypeId' => $this->question_type_id,
-            'question' => $this->question
+            'question' => $this->question,
+            'options' => OptionResource::collection($this->options)
         ];
     }
 }
