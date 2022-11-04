@@ -18,9 +18,19 @@ class QuestionController extends ApiController
         $question= Question::get();
         return $this->successResponse(QuestionResource::collection($question));
     }
-    public function questionsByOptionId($questionTypeId)
+    public function questionsByTypeId($questionTypeId)
     {
         $question= Question::whereQuestionTypeId($questionTypeId)->get();
+        return $this->successResponse(QuestionResource::collection($question));
+    }
+    public function questionsByLevelId($questionLevelId)
+    {
+        $question= Question::whereQuestionTypeId($questionLevelId)->get();
+        return $this->successResponse(QuestionResource::collection($question));
+    }
+    public function questionsByOptionAndLevelId($questionTypeId,$questionLevelId)
+    {
+        $question= Question::whereQuestionTypeIdAndQuestionLevelId($questionTypeId,$questionLevelId)->get();
         return $this->successResponse(QuestionResource::collection($question));
     }
 

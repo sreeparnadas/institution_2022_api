@@ -57,7 +57,10 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
 
     //getting question
     Route::get("/questions",[QuestionController::class, 'index']);
-    Route::get("/questions/{questionTypeId}",[QuestionController::class, 'questionsByOptionId']);
+    Route::get("/questions/type/{questionTypeId}",[QuestionController::class, 'questionsByTypeId']);
+    Route::get("/questions/level/{questionLevelId}",[QuestionController::class, 'questionsByLevelId']);
+    Route::get("/questions/type/{questionTypeId}/level/{questionLevelId}",[QuestionController::class, 'questionsByOptionAndLevelId']);
+
     Route::post("/questions",[QuestionController::class, 'save_question']);
 
     // student related API address placed in a group for better readability
