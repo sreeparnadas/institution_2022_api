@@ -60,6 +60,7 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
     Route::get("/questions/type/{questionTypeId}",[QuestionController::class, 'questionsByTypeId']);
     Route::get("/questions/level/{questionLevelId}",[QuestionController::class, 'questionsByLevelId']);
     Route::get("/questions/type/{questionTypeId}/level/{questionLevelId}",[QuestionController::class, 'questionsByOptionAndLevelId']);
+    Route::patch("/questions/{id}/level/{questionLevelId}",[QuestionController::class, 'updateQuestionLevel']);
 
     Route::post("/questions",[QuestionController::class, 'save_question']);
 

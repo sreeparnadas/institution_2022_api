@@ -33,6 +33,14 @@ class QuestionController extends ApiController
         $question= Question::whereQuestionTypeIdAndQuestionLevelId($questionTypeId,$questionLevelId)->get();
         return $this->successResponse(QuestionResource::collection($question));
     }
+    public function updateQuestionLevel($id,$questionLevelId)
+    {
+        $question= Question::findOrFail($id);
+        $question->question_level_id = $questionLevelId;
+        $question->save();
+        return $this->successResponse(new QuestionResource($question));
+    }
+
 
     public function save_question(Request $request){
         $input=($request->json()->all());
