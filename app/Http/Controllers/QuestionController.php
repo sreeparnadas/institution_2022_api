@@ -18,6 +18,11 @@ class QuestionController extends ApiController
         $question= Question::get();
         return $this->successResponse(QuestionResource::collection($question));
     }
+    public function questionsByOptionId($questionTypeId)
+    {
+        $question= Question::whereQuestionTypeId($questionTypeId)->get();
+        return $this->successResponse(QuestionResource::collection($question));
+    }
 
     public function save_question(Request $request){
         $input=($request->json()->all());
