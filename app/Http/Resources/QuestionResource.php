@@ -34,7 +34,7 @@ class QuestionResource extends JsonResource
             'chapterId' => $this->chapter_id,
             'questionTypeId' => $this->question_type_id,
             'question' => $this->question,
-            'options' => OptionResource::collection($this->options)
+            'options' => OptionResource::collection($this->options)->shuffle()
         ];
     }
 }
