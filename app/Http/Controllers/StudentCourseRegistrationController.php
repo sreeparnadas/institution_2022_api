@@ -230,7 +230,7 @@ class StudentCourseRegistrationController extends Controller
                  $td->transaction_master_id = $transaction_master->id;
                  $td->ledger_id = $detail->ledgerId;
                  $td->transaction_type_id = $detail->transactionTypeId;
-                 $td->amount = $detail->amount;
+                 $td->amount = $detail->amount-$request->input('discountAllowed');
                  $td->save();
                  $transaction_details[]=$td;
              }

@@ -37,6 +37,19 @@ class StudentController extends ApiController
         ->get();
         return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
     }
+    public function get_discount_feesname()
+    {
+      //$courseRegistration= StudentCourseRegistration::get();
+        $result = DB::table('ledgers')
+        ->where('ledger_group_id', '=', 2)
+        ->select('ledgers.id', 
+        'ledgers.ledger_name',
+        'ledgers.billing_name',
+        'ledger_group_id'
+            )
+        ->get();
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
 
     public function get_student_to_courses_by_id($id)
     {

@@ -15,49 +15,166 @@ use Illuminate\Support\Facades\Validator;
 
 class TransactionController extends ApiController
 {
-    //----- Nanda gopal code -------------
-   /*  public function get_all_feeCharge()
+    //----- Nanda gopal code -------------_
+    public function get_auto_generate_entry()
     {
-        //$courseRegistration= StudentCourseRegistration::get();
-        $result = DB::table('transaction_masters')
-        ->join('transaction_details', 'transaction_details.transaction_master_id', '=', 'transaction_masters.id')
-        ->join('ledgers', 'ledgers.id', '=', 'transaction_details.ledger_id')
-        ->join('transaction_types', 'transaction_types.id', '=', 'transaction_details.transaction_type_id')
-        ->join('student_course_registrations', 'student_course_registrations.id', '=', 'transaction_masters.student_course_registration_id')
-        ->join('courses', 'courses.id', '=', 'student_course_registrations.course_id')
-        ->where('transaction_types.id', '=', 1)
-        ->select(
-        'transaction_masters.id',
-        'ledgers.ledger_name',
-        'transaction_masters.transaction_number',
-        'transaction_masters.transaction_date',
-        'transaction_details.amount',
-        'transaction_details.ledger_id',
-        'student_course_registrations.base_fee',
-        'courses.full_name'
-          )
-           ->get();
-        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
-    } */
+        $result = DB::select("SELECT ledgers.ledger_name,
+        transaction_details.ledger_id,
+        transaction_masters.student_course_registration_id,
+        courses.full_name,
+        transaction_masters.transaction_date,
+        student_course_registrations.effective_date,
+        month(student_course_registrations.effective_date) as effectiveDate,
+        MONTH(CURDATE()) as currMonth,
+        MONTH(CURDATE()) - month(student_course_registrations.effective_date) as diffMonth,
+        transaction_details.amount
+        from student_course_registrations
+        inner join transaction_masters on transaction_masters.student_course_registration_id = student_course_registrations.id
+        inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+        inner join courses ON courses.id = student_course_registrations.course_id
+        inner join ledgers ON ledgers.id = student_course_registrations.ledger_id
+        where courses.fees_mode_type_id=1
+        and transaction_details.transaction_type_id=2
+        and transaction_details.ledger_id=8");
         
-    public function get_all_feeCharge_1(){
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
+    public function get_fees_by_ledger_id(Request $request)
+    {
+        $ledgerId = $request->input('ledger_id');
+        $tranId = $request->input('transaction_id');
+        //echo $ledgerId;
+        $result = DB::select("select distinct transaction_masters.id,transaction_masters.student_course_registration_id,
+        transaction_details.ledger_id
+        ,ledgers.ledger_name
+        ,get_total_fees_charge_by_studentregistration_ledger_id(transaction_masters.student_course_registration_id,transaction_details.ledger_id) as total_billed
+        ,get_total_fees_received_by_studentregistration_ledger_id(transaction_masters.student_course_registration_id,transaction_details.ledger_id)
+         as total_received
+        from transaction_masters
+        inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+        inner join ledgers ON ledgers.id = transaction_details.ledger_id
+        inner join ledger_groups ON ledger_groups.id = ledgers.ledger_group_id
+        where ledger_groups.id=6
+        and transaction_masters.id='$tranId' and ledgers.id='$ledgerId'");
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
+    public function get_all_receipt_by_registration_id($id)
+    {
+        $result = DB::select("select ledgers.ledger_name as student_name,ledgers.whatsapp_number,
+        courses.full_name,
+        trans_master2.student_course_registration_id, 
+                trans_master1.id,
+                trans_master1.reference_transaction_master_id,
+                trans_master1.comment,
+                table1.transaction_number,
+                table1.transaction_date, 
+                table1.ledger_id,
+                table1.ledger_name, 
+                table1.temp_total_received,
+                table1.created_at,
+                get_total_course_fees_by_studentregistration(trans_master2.student_course_registration_id) as total_course_fees,
+                get_total_discount_by_studentregistration_id(trans_master2.student_course_registration_id) as total_discount
+                from transaction_masters trans_master1,transaction_masters trans_master2
+                inner join (select transaction_masters.id,
+                                  transaction_masters.transaction_number,
+                                  transaction_masters.transaction_date,
+                                  transaction_masters.created_at,
+                                  transaction_details.ledger_id,
+                                  ledgers.ledger_name,
+                                  transaction_details.amount as temp_total_received from transaction_masters
+                                  inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+                                  inner join ledgers ON ledgers.id = transaction_details.ledger_id
+                                  where transaction_masters.voucher_type_id=4
+                                  and transaction_details.transaction_type_id=1 and transaction_details.ledger_id not in(22)) as table1
+                inner join student_course_registrations ON student_course_registrations.id = trans_master2.student_course_registration_id
+                inner join courses ON courses.id = student_course_registrations.course_id
+                inner join ledgers ON ledgers.id = student_course_registrations.ledger_id
+                where trans_master1.reference_transaction_master_id=trans_master2.id
+                and table1.id = trans_master1.id and trans_master2.student_course_registration_id='$id'
+                order by table1.created_at desc");
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    } 
+     public function get_receipt_by_transaction_id($id)
+    {
+        $result = DB::select("select ledgers.ledger_name as student_name,
+        ledgers.whatsapp_number,
+        courses.full_name,
+        trans_master2.student_course_registration_id, 
+                trans_master1.id,
+                trans_master1.reference_transaction_master_id,
+                trans_master1.comment,
+                table1.transaction_number,
+                table1.transaction_date, 
+                table1.ledger_id,
+                table1.ledger_name, 
+                table1.temp_total_received
+                from transaction_masters trans_master1,transaction_masters trans_master2
+                inner join (select transaction_masters.id,
+                                  transaction_masters.transaction_number,
+                                  transaction_masters.transaction_date,
+                                  transaction_details.ledger_id,
+                                  ledgers.ledger_name,
+                                  transaction_details.amount as temp_total_received from transaction_masters
+                                  inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+                                  inner join ledgers ON ledgers.id = transaction_details.ledger_id
+                                  where transaction_masters.voucher_type_id=4
+                                  and transaction_details.transaction_type_id=1) as table1
+                inner join student_course_registrations ON student_course_registrations.id = trans_master2.student_course_registration_id
+                inner join courses ON courses.id = student_course_registrations.course_id
+                inner join ledgers ON ledgers.id = student_course_registrations.ledger_id
+                where trans_master1.reference_transaction_master_id=trans_master2.id
+                and table1.id = trans_master1.id and trans_master1.id='$id'");
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    } 
+    public function get_all_feeReceived()
+    {
         $result = TransactionMaster::
         join('transaction_details', 'transaction_details.transaction_master_id', '=', 'transaction_masters.id')
         ->join('student_course_registrations', 'student_course_registrations.id', '=', 'transaction_masters.student_course_registration_id')
         ->join('courses', 'courses.id', '=', 'student_course_registrations.course_id')
         ->join('ledgers', 'ledgers.id', '=', 'student_course_registrations.ledger_id')
         ->where('transaction_details.transaction_type_id', '=', 2)
-        ->select('student_course_registration_id',
-          DB::raw('sum(transaction_details.amount) as fees_total')
-        )
-        -> groupBy('student_course_registration_id')
-        ->get();
+        ->where(DB::raw('get_total_received_by_studentregistration(transaction_masters.student_course_registration_id)- get_total_discount_by_studentregistration_id(transaction_masters.student_course_registration_id)'),'>',0)
+        ->select('student_course_registration_id'
+        ,'ledgers.ledger_name'
+        ,'courses.full_name'
+        , DB::raw('get_total_received_by_studentregistration(transaction_masters.student_course_registration_id)- get_total_discount_by_studentregistration_id(transaction_masters.student_course_registration_id)
+        as total_received')
+        )->distinct()->get();
         foreach ($result as $row) {
-            $row->setAttribute('fees_details', $this->get_fees_charge_details_by_id($row->student_course_registration_id));
-        }
-        //return response()->json(['success'=>1,'data'=>$result], 200,[],JSON_NUMERIC_CHECK);
-       return response()->json(['success'=>1,'data'=> FeesChargedResource::collection($result)], 200,[],JSON_NUMERIC_CHECK);
-        }
+            $row->setAttribute('fees_received_details', $this->get_fees_received_details_by_id($row->student_course_registration_id));
+        }  
+     
+       return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+
+    }
+    public function get_fees_received_details_by_id($id){
+                 
+        $result = DB::select("select trans_master2.student_course_registration_id, 
+        trans_master1.id,
+        trans_master1.reference_transaction_master_id,
+        table1.transaction_number,
+        table1.transaction_date, 
+        trans_master1.comment,
+        table1.ledger_id,
+        table1.ledger_name, 
+        table1.temp_total_received
+        from transaction_masters trans_master1,transaction_masters trans_master2
+        inner join (select transaction_masters.id,
+                          transaction_masters.transaction_number,
+                          transaction_masters.transaction_date,
+                          transaction_details.ledger_id,
+                          ledgers.ledger_name,
+                          transaction_details.amount as temp_total_received from transaction_masters
+                          inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+                          inner join ledgers ON ledgers.id = transaction_details.ledger_id
+                          where transaction_masters.voucher_type_id=4
+                          and transaction_details.transaction_type_id=1) as table1
+        where trans_master1.reference_transaction_master_id=trans_master2.id
+        and table1.id = trans_master1.id
+        and trans_master2.student_course_registration_id='$id' order by trans_master1.created_at desc");
+       return $result;
+    }
     public function get_all_feeCharge()
     {
         $result = TransactionMaster::
@@ -76,28 +193,7 @@ class TransactionController extends ApiController
         }
         //return response()->json(['success'=>1,'data'=>$result], 200,[],JSON_NUMERIC_CHECK);
        return response()->json(['success'=>1,'data'=> FeesChargedResource::collection($result)], 200,[],JSON_NUMERIC_CHECK);
-    
-        //$courseRegistration= StudentCourseRegistration::get();
-       /*  $result = TransactionMaster::
-        join('transaction_details', 'transaction_details.transaction_master_id', '=', 'transaction_masters.id')
-        ->join('student_course_registrations', 'student_course_registrations.id', '=', 'transaction_masters.student_course_registration_id')
-        ->join('courses', 'courses.id', '=', 'student_course_registrations.course_id')
-        ->join('ledgers', 'ledgers.id', '=', 'student_course_registrations.ledger_id')
-        ->where('transaction_details.transaction_type_id', '=', 2)
-        ->select('student_course_registration_id',
-        'courses.full_name',
-        'ledgers.ledger_name',
-        'transaction_masters.transaction_date',
-        DB::raw('sum(transaction_details.amount) as fees_total')
-        )
-        -> groupBy('student_course_registration_id','courses.full_name','ledgers.ledger_name','transaction_masters.transaction_date')
-        ->get();
-        foreach ($result as $row) {
-            $row->setAttribute('fees_details', $this->get_fees_charge_details_by_id($row->student_course_registration_id));
-        }
-        return response()->json(['success'=>1,'data'=>$result], 200,[],JSON_NUMERIC_CHECK); */
-        //return response()->json(['success'=>1,'data'=> FeesChargedResource::collection($result)], 200,[],JSON_NUMERIC_CHECK);
-//        return response()->json(['success'=>1,'data'=>$result], 200,[],JSON_NUMERIC_CHECK);
+
     }
     public function get_fees_charge_details_by_id($id){
         $result = TransactionMaster::
@@ -111,6 +207,57 @@ class TransactionController extends ApiController
         ,'transaction_masters.transaction_number'
         ,'ledgers.ledger_name'
         ,'transaction_details.amount')
+        ->get();
+        return $result;
+    }
+    public function get_total_discount_by_trans_id($id){
+        $result = TransactionMaster::
+        join('transaction_details', 'transaction_details.transaction_master_id', '=', 'transaction_masters.id')
+        ->join('ledgers', 'ledgers.id', '=', 'transaction_details.ledger_id')
+        ->where('transaction_details.ledger_id', '=', 22)
+        ->where('transaction_masters.voucher_type_id', '=', 4)
+        ->where('transaction_details.transaction_type_id', '=', 1)
+        ->where('transaction_masters.reference_transaction_master_id', '=',$id)
+        ->select('transaction_masters.reference_transaction_master_id'
+        ,'ledgers.ledger_name'
+        , DB::raw('sum(transaction_details.amount) as temp_total_discount')
+        )
+        -> groupBy('transaction_masters.reference_transaction_master_id','ledgers.ledger_name')
+        ->get();
+       return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
+    public function get_all_feeDiscount()
+    {
+        $result = TransactionMaster::
+         join('student_course_registrations', 'student_course_registrations.id', '=', 'transaction_masters.student_course_registration_id')
+        ->join('courses', 'courses.id', '=', 'student_course_registrations.course_id')
+        ->join('ledgers', 'ledgers.id', '=', 'student_course_registrations.ledger_id')
+        ->where(DB::raw('get_total_fees_discount_transaction_id(transaction_masters.id)'),'>',0)
+        ->select('transaction_masters.id'
+        ,DB::raw('max(ledgers.ledger_name) as ledger_name')
+        ,DB::raw('max(courses.full_name) as full_name')
+        ,DB::raw('get_total_fees_discount_transaction_id(transaction_masters.id) as total_discount')
+        )
+        -> groupBy('transaction_masters.id')
+        ->get();
+        foreach ($result as $row) {
+            $row->setAttribute('fees_discounts', $this->get_fees_discount_details_by_id($row->id));
+        } 
+        //return response()->json(['success'=>1,'data'=>$result], 200,[],JSON_NUMERIC_CHECK);
+       return response()->json(['success'=>1,'data'=>$result], 200,[],JSON_NUMERIC_CHECK);
+
+    }
+    public function get_fees_discount_details_by_id($id){
+        $result = TransactionMaster::
+        join('transaction_details', 'transaction_details.transaction_master_id', '=', 'transaction_masters.id')
+        ->join('ledgers', 'ledgers.id', '=', 'transaction_details.ledger_id')
+        ->where('transaction_masters.id', '=', $id)
+        ->where('transaction_details.transaction_type_id', '=',2)
+        ->select('transaction_masters.id'
+        ,'transaction_masters.transaction_date'
+        ,'transaction_masters.transaction_number'
+        ,'ledgers.ledger_name'
+         )
         ->get();
         return $result;
 //        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
@@ -131,18 +278,37 @@ class TransactionController extends ApiController
         //return $result;
         return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
     }
-    public function get_fees_due_list_by_id($id){
-        $result = DB::select('select distinct transaction_masters.student_course_registration_id,
+    public function get_fees_due_list_by_tran_id($id){
+        $result = DB::select("select distinct transaction_masters.id,transaction_masters.student_course_registration_id,
         transaction_details.ledger_id
         ,ledgers.ledger_name
         ,get_total_fees_charge_by_studentregistration_ledger_id(transaction_masters.student_course_registration_id,transaction_details.ledger_id) as total_billed
-        ,get_total_fees_received_by_studentregistration_ledger_id(transaction_masters.student_course_registration_id,transaction_details.ledger_id) as total_received
+        ,get_total_fees_received_by_studentregistration_ledger_id(transaction_masters.student_course_registration_id,transaction_details.ledger_id)
+         as total_received
         from transaction_masters
         inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
         inner join ledgers ON ledgers.id = transaction_details.ledger_id
         inner join ledger_groups ON ledger_groups.id = ledgers.ledger_group_id
-        where transaction_masters.student_course_registration_id=60
-        and ledger_groups.id=6');
+        where ledger_groups.id=6
+        and (get_total_fees_charge_by_studentregistration_ledger_id(transaction_masters.student_course_registration_id,transaction_details.ledger_id) -
+         get_total_fees_received_by_studentregistration_ledger_id(transaction_masters.student_course_registration_id,transaction_details.ledger_id))>0
+        and transaction_masters.id='$id'");
+       return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
+    public function get_fees_due_list_by_id($id){
+        $result = DB::select("select distinct transaction_masters.id,transaction_masters.student_course_registration_id,
+        transaction_details.ledger_id
+        ,ledgers.ledger_name
+        ,get_total_fees_charge_by_studentregistration_ledger_id(transaction_masters.student_course_registration_id,transaction_details.ledger_id) as total_billed
+        ,get_total_fees_received_by_studentregistration_ledger_id(transaction_masters.student_course_registration_id,transaction_details.ledger_id)
+        + get_total_fees_discount_by_studentregistration_ledger_id(transaction_masters.student_course_registration_id,transaction_details.ledger_id)
+        as total_received
+        from transaction_masters
+        inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+        inner join ledgers ON ledgers.id = transaction_details.ledger_id
+        inner join ledger_groups ON ledger_groups.id = ledgers.ledger_group_id
+        where ledger_groups.id=6
+        and transaction_masters.student_course_registration_id='$id'");
        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
     }
     public function get_feeCharge_by_id($id)
@@ -173,11 +339,11 @@ class TransactionController extends ApiController
     {
         $transactionMaster= DB::table('transaction_masters')
         ->where('transaction_masters.student_course_registration_id', '=', $id)
-        ->select('transaction_masters.transaction_number',
+        ->select('transaction_masters.transaction_number','transaction_masters.reference_transaction_master_id',
         'transaction_masters.id') ->get();
         return response()->json(['success'=>1,'data'=> $transactionMaster], 200,[],JSON_NUMERIC_CHECK);
 
-        return response()->json(['success'=>0,'data'=>TransactionMasterResource::collection($transactions)], 200,[],JSON_NUMERIC_CHECK);
+        //return response()->json(['success'=>0,'data'=>TransactionMasterResource::collection($transactions)], 200,[],JSON_NUMERIC_CHECK);
     }
 
     public function get_all_transactions(){
@@ -214,35 +380,6 @@ class TransactionController extends ApiController
     //saving fees charging to student
     public function save_fees_charge(Request $request)
     {
-        /*
-         * Sample JSON DATA
-         *      {
-                "transactionMaster": {
-                    "userId": 1,
-                    "transactionDate": "2022-04-21",
-                    "studentCourseRegistrationId": 16,
-                    "comment": "No comment",
-                    "feesYear": 2022,
-                    "feesMonth": 3
-                },
-                "transactionDetails": [
-                    {
-                        "ledgerId": 19,
-                        "transactionTypeId": 1,
-                        "amount": 310
-                    },
-                    {
-                        "ledgerId": 10,
-                        "transactionTypeId": 2,
-                        "amount": 315
-                    }
-                ]
-               }
-         *
-         *
-         * */
-
-
         $input=($request->json()->all());
 
         $validator = Validator::make($input,[
@@ -372,6 +509,163 @@ class TransactionController extends ApiController
             $transaction_master->transaction_number = $transaction_number;
             $transaction_master->transaction_date = $input_transaction_master->transactionDate;
             $transaction_master->student_course_registration_id = $input_transaction_master->studentCourseRegistrationId;
+            $transaction_master->comment = 'Fees Charged';
+            $transaction_master->fees_year = $input_transaction_master->feesYear;
+            $transaction_master->fees_month = $input_transaction_master->feesMonth;
+            $transaction_master->save();
+            $result_array['transaction_master']=$transaction_master;
+            $transaction_details=array();
+            foreach($input_transaction_details as $transaction_detail){
+                $detail = (object)$transaction_detail;
+                $td = new TransactionDetail();
+                $td->transaction_master_id = $transaction_master->id;
+                $td->ledger_id = $detail->ledgerId;
+                $td->transaction_type_id = $detail->transactionTypeId;
+                $td->amount = $detail->amount;
+                $td->save();
+                $transaction_details[]=$td;
+            }
+            $result_array['transaction_details']=$transaction_details;
+            DB::commit();
+
+        }catch(\Exception $e){
+            DB::rollBack();
+            return response()->json(['success'=>0,'exception'=>$e->getMessage()], 500);
+        }
+
+        return response()->json(['success'=>1,'data'=>new TransactionMasterResource($result_array['transaction_master'])], 200,[],JSON_NUMERIC_CHECK);
+    }
+    public function save_fees_discount_charge(Request $request)
+    {
+        $input=($request->json()->all());
+
+        $validator = Validator::make($input,[
+            'transactionMaster' => 'required',
+            'transactionDetails' => ['required',function($attribute, $value, $fail){
+                $dr=0;
+                $cr=0;
+
+                foreach ($value as $v ){
+
+                    /*
+                     * This is a fees charging transaction, hence only a student can be debited
+                     * */
+                   /*  if($v['transactionTypeId']==1){
+                        $student = Ledger::find($v['ledgerId']);
+                        if(!$student){
+                            return $fail($v['ledgerId']." this ledger does not exist");
+                        }
+                        if($student->is_student==0){
+                            return $fail("Only student can be Debited");
+                        }
+                    } */
+                    /*
+                     * This is a fees charging transaction, hence only fees ca be credited
+                     * */
+
+                   /*  if($v['transactionTypeId']==2){
+                        $ledger = Ledger::find($v['ledgerId']);
+                        if(!$ledger){
+                            return $fail($v['ledgerId']." this ledger does not exist");
+                        }
+                        if($ledger->ledger_group_id!=6){
+                            return $fail("This is not belongs to income ledger like fees");
+                        }
+                    } */
+
+
+                    if(!($v['transactionTypeId']==1 || $v['transactionTypeId']==2)){
+                        return $fail("Transaction type id is incorrect");
+                    }
+                    if($v['transactionTypeId']==1){
+                        $dr=$dr+$v['amount'];
+                    }
+                    if($v['transactionTypeId']==2){
+                        $cr=$cr+$v['amount'];
+                    }
+                }
+
+                if($dr!=$cr){
+                    $fail("As per accounting rule Debit({$dr})  and Credit({$cr}) should be same");
+                }
+
+
+            }],
+        ]);
+        if($validator->fails()){
+            return response()->json(['success'=>0,'data'=>null,'error'=>$validator->messages()], 200,[],JSON_NUMERIC_CHECK);
+        }
+
+        $input=($request->json()->all());
+        $input_transaction_master=(object)($input['transactionMaster']);
+        $input_transaction_details=($input['transactionDetails']);
+
+        //validation
+        $rules = array(
+            'userId'=>'required|exists:users,id',
+            'transactionDate' => 'bail|required|date_format:Y-m-d',
+            'studentCourseRegistrationId' => ['bail','required',
+                function($attribute, $value, $fail){
+                    $StudentCourseRegistration=StudentCourseRegistration::where('id', $value)->where('is_completed','=',0)->first();
+                    if(!$StudentCourseRegistration){
+                        $fail($value.' is not a valid Course Registration Number');
+                    }
+                }],
+        );
+        $messages = array(
+            'transactionDate.required'=>'Transaction Date is required',
+            'transactionDate.date_format'=>'Date format should be yyyy-mm-dd',
+        );
+
+        $validator = Validator::make($input['transactionMaster'],$rules,$messages );
+
+
+        if ($validator->fails()) {
+            return response()->json(['position'=>1,'success'=>0,'data'=>null,'error'=>$validator->messages()], 406,[],JSON_NUMERIC_CHECK);
+        }
+
+        //details verification
+        //validation
+        $rules = array(
+            "*.transactionTypeId"=>'required|in:1,2'
+        );
+        $validator = Validator::make($input['transactionDetails'],$rules,$messages );
+        if ($validator->fails()) {
+            return response()->json(['position'=>1,'success'=>0,'data'=>null,'error'=>$validator->messages()], 406,[],JSON_NUMERIC_CHECK);
+        }
+        DB::beginTransaction();
+        try{
+            $result_array=array();
+            $accounting_year = get_accounting_year($input_transaction_master->transactionDate);
+            $voucher="Fees Charged";
+            $customVoucher=CustomVoucher::where('voucher_name','=',$voucher)->where('accounting_year',"=",$accounting_year)->first();
+            if($customVoucher) {
+                //already exist
+                $customVoucher->last_counter = $customVoucher->last_counter + 1;
+                $customVoucher->save();
+            }else{
+                //fresh entry
+                $customVoucher= new CustomVoucher();
+                $customVoucher->voucher_name=$voucher;
+                $customVoucher->accounting_year= $accounting_year;
+                $customVoucher->last_counter=1;
+                $customVoucher->delimiter='-';
+                $customVoucher->prefix='FEES';
+                $customVoucher->save();
+            }
+            //adding Zeros before number
+            $counter = str_pad($customVoucher->last_counter,5,"0",STR_PAD_LEFT);
+
+            //creating sale bill number
+            $transaction_number = $customVoucher->prefix.'-'.$counter."-".$accounting_year;
+            $result_array['transaction_number']=$transaction_number;
+
+            //saving transaction master
+            $transaction_master= new TransactionMaster();
+            $transaction_master->voucher_type_id = 9; // 9 is the voucher_type_id in voucher_types table for Fees Charged Journal Voucher
+            $transaction_master->transaction_number = $transaction_number;
+            $transaction_master->transaction_date = $input_transaction_master->transactionDate;
+            $transaction_master->student_course_registration_id = $input_transaction_master->studentCourseRegistrationId;
             $transaction_master->comment = $input_transaction_master->comment;
             $transaction_master->fees_year = $input_transaction_master->feesYear;
             $transaction_master->fees_month = $input_transaction_master->feesMonth;
@@ -398,8 +692,7 @@ class TransactionController extends ApiController
 
         return response()->json(['success'=>1,'data'=>new TransactionMasterResource($result_array['transaction_master'])], 200,[],JSON_NUMERIC_CHECK);
     }
-
-     //saving fees charging to student
+     //update fees charging to student
      public function update_fees_charge($id,Request $request)
      {
          $input=($request->json()->all());
@@ -822,7 +1115,7 @@ class TransactionController extends ApiController
             return response()->json(['success'=>0,'exception'=>$e->getMessage()], 500);
         }
 
-        return response()->json(['success'=>2,'data'=>new TransactionMasterResource($result_array['transaction_master'])], 200,[],JSON_NUMERIC_CHECK);
+        return response()->json(['success'=>1,'data'=>new TransactionMasterResource($result_array['transaction_master'])], 200,[],JSON_NUMERIC_CHECK);
     }
 
     public function get_bill_details_by_id($id){

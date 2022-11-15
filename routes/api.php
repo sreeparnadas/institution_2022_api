@@ -62,6 +62,7 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
 
         // get any Ledger by Ledger group id
         Route::get("/feesName", [StudentController::class, 'get_all_feesname']);
+        Route::get("/feesNameDiscount", [StudentController::class, 'get_discount_feesname']);
         // get Student to Course id by Student id
         Route::get("/studentToCourses/{id}", [StudentController::class, 'get_student_to_courses_by_id']);
 
@@ -141,18 +142,28 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
         Route::get("/dues/SCRId/{id}",[TransactionController::class, 'get_student_due_by_student_course_registration_id']);
 
         //----- Nanda gopal code api -------------
+        Route::get("/getAutoGenerateEntry",[TransactionController::class, 'get_auto_generate_entry']);
         //Get all Fees charge 
+        Route::post("getFeesByLedgerId",[TransactionController::class, 'get_fees_by_ledger_id']);
         Route::get("/getFeeCharge/{id}",[TransactionController::class, 'get_feeCharge_by_id']);
+        Route::get("/allFeesReceived",[TransactionController::class, 'get_all_feeReceived']);
         Route::get("/allFeesCharged",[TransactionController::class, 'get_all_feeCharge']);
-        Route::get("/allFeesCharged_1",[TransactionController::class, 'get_all_feeCharge_1']);
+        Route::get("/allFeesDiscount",[TransactionController::class, 'get_all_feeDiscount']);
+        Route::get("/allTotalDiscountByTranId/{id}",[TransactionController::class, 'get_total_discount_by_trans_id']);
+        Route::get("/feesReceivedDetails/{id}",[TransactionController::class, 'get_fees_received_details_by_id']);
         Route::get("/feesChargedDetails/{id}",[TransactionController::class, 'get_fees_charge_details_by_id']);
+        Route::get("/feesDiscountDetails/{id}",[TransactionController::class, 'get_fees_discount_details_by_id']);
         Route::get("/feesChargedDetailsMain/{id}",[TransactionController::class, 'get_fees_charge_details_main_by_id']);
         Route::get("/feesDueList/{id}",[TransactionController::class, 'get_fees_due_list_by_id']);
+        Route::get("/feesDueListByTranId/{id}",[TransactionController::class, 'get_fees_due_list_by_tran_id']);
+
 
         Route::get("/getTranMasterId/{id}",[TransactionController::class, 'get_transaction_masterId_by_student_id']);
 
         Route::patch("/updateFeesCharged/{id}",[TransactionController::class, 'update_fees_charge']);
-
+        // Receipt Bills
+        Route::get("/getReceiptId/{id}",[TransactionController::class, 'get_receipt_by_transaction_id']);
+        Route::get("/getAllReceiptId/{id}",[TransactionController::class, 'get_all_receipt_by_registration_id']);
         // fee charge compeleted-------
 
          // fee Received Start-------
@@ -166,6 +177,8 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
 
         //saving monthly fees charged
         Route::post("/monthlyFeesCharged",[TransactionController::class, 'save_monthly_fees_charge']);
+
+        Route::post("/feesDiscountCharged",[TransactionController::class, 'save_fees_discount_charge']);
 
         //saving fees received
         Route::post("/feesReceived",[TransactionController::class, 'save_fees_received']);
