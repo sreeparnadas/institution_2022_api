@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\FeesModeTypeController;
+use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\StateController;
 use App\Http\Controllers\StudentCourseRegistrationController;
 use App\Http\Controllers\SubjectController;
@@ -53,6 +54,15 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
     Route::get("users",[UserController::class,'getAllUsers']);
     Route::post('uploadPicture',[UserController::class,'uploadUserPicture']);
     Route::post('uploadStudentPicture',[UserController::class,'uploadStudentPicture']);
+
+    //getting question
+    Route::get("/questions",[QuestionController::class, 'index']);
+    Route::get("/questions/type/{questionTypeId}",[QuestionController::class, 'questionsByTypeId']);
+    Route::get("/questions/level/{questionLevelId}",[QuestionController::class, 'questionsByLevelId']);
+    Route::get("/questions/type/{questionTypeId}/level/{questionLevelId}",[QuestionController::class, 'questionsByOptionAndLevelId']);
+    Route::patch("/questions/{id}/level/{questionLevelId}",[QuestionController::class, 'updateQuestionLevel']);
+
+    Route::post("/questions",[QuestionController::class, 'save_question']);
 
     // student related API address placed in a group for better readability
     Route::group(array('prefix' => 'students'), function() {
@@ -136,7 +146,7 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
     Route::group(array('prefix' => 'transactions'), function() {
         Route::get("/all",[TransactionController::class, 'get_all_transactions']);
         Route::get("/feesCharged",[TransactionController::class, 'get_all_fees_charged_transactions']);
-        
+
         Route::get("/dues/studentId/{id}",[TransactionController::class, 'get_total_dues_by_student_id']);
 
         Route::get("/dues/SCRId/{id}",[TransactionController::class, 'get_student_due_by_student_course_registration_id']);
@@ -145,6 +155,8 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
         Route::get("/getAutoGenerateEntry",[TransactionController::class, 'get_auto_generate_entry']);
         //Get all Fees charge 
         Route::post("getFeesByLedgerId",[TransactionController::class, 'get_fees_by_ledger_id']);
+
+        //Get all Fees charge
         Route::get("/getFeeCharge/{id}",[TransactionController::class, 'get_feeCharge_by_id']);
         Route::get("/allFeesReceived",[TransactionController::class, 'get_all_feeReceived']);
         Route::get("/allFeesCharged",[TransactionController::class, 'get_all_feeCharge']);
@@ -184,6 +196,8 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
         Route::post("/feesReceived",[TransactionController::class, 'save_fees_received']);
 
         Route::get("/billDetails/id/{id}",[TransactionController::class, 'get_bill_details_by_id']);
+
+
     });
 
 });
@@ -247,7 +261,7 @@ Route::group(array('prefix' => 'dev'), function() {
     //CourseRegistration
     Route::post("studentCourseRegistrations",[StudentCourseRegistrationController::class, 'store']);
     Route::get("studentCourseRegistrations",[StudentCourseRegistrationController::class, 'index']);
-   
+
     Route::delete("studentCourseRegistrations/{id}",[StudentCourseRegistrationController::class, 'destroy']);
     Route::patch("studentCourseRegistrations",[StudentCourseRegistrationController::class, 'update']);
 
@@ -269,7 +283,7 @@ Route::group(array('prefix' => 'dev'), function() {
         Route::get("/dues/SCRId/{id}",[TransactionController::class, 'get_student_due_by_student_course_registration_id']);
 
          //----- Nanda gopal code api -------------
-        //Get all Fees charge 
+        //Get all Fees charge
         Route::get("/getFeeCharge/{id}",[TransactionController::class, 'get_feeCharge_by_id']);
         Route::get("/allFeesCharged",[TransactionController::class, 'get_all_feeCharge']);
         // End Nanda gopal code api
@@ -291,5 +305,11 @@ Route::group(array('prefix' => 'dev'), function() {
 
     Route::post("/bijoyaRegistrationForm",[BijoyaRegistrationController::class, 'saveStudentInfo']);
     Route::get("/bijoyaRegistrationForm",[BijoyaRegistrationController::class, 'getStudentInfo']);
+
+
+    //subject
+
+    Route::post("/subject", [SubjectController::class, 'saveSubject']);
+    Route::get("/subject", [SubjectController::class, 'index']);
 });
 

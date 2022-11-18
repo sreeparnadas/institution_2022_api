@@ -24,9 +24,18 @@ class SubjectController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function saveSubject(Request $request)
     {
-        //
+        $subject = new Subject();
+        $subject->subject_code=$request->input('subjectCode');
+        $subject->subject_short_name=$request->input('subjectShortName');
+        $subject->subject_full_name=$request->input('subjectFullName');
+        $subject->subject_duration=$request->input('subjectDuration');
+        $subject->duration_type_id=$request->input('durationTypeId');
+        $subject->subject_description=$request->input('subjectDescription');
+        $subject->save();
+
+        return response()->json(['success'=>1,'data'=>$subject], 200,[],JSON_NUMERIC_CHECK);
     }
 
     /**

@@ -32,6 +32,7 @@ class BijoyaRegistrationController extends Controller
     {
 
         
+        
 
         $studentRegistration = new BijoyaRegistration();
         $studentRegistration->student_name = $request->input('studentName');
