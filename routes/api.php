@@ -127,6 +127,7 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
 
 
     //CourseRegistration
+    Route::get("FeesModeTypeById/{id}",[StudentCourseRegistrationController::class, 'getFeesModeTypeById']);
     Route::get("getStudentCourseRegistrations",[StudentCourseRegistrationController::class, 'getStudentToCourseRegistration']);
     Route::get("getCourseId/{id}",[StudentCourseRegistrationController::class, 'getCourseIdByStudentToCourseRegistrationId']);
     Route::post("getRegisterCourseByStudentId",[StudentCourseRegistrationController::class, 'getStudentToCourseRegistrationById']);
@@ -180,6 +181,7 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
 
          // fee Received Start-------
         Route::get("/feesChargedReceivedDue/{id}",[TransactionController::class, 'get_feescharge_received_due_list_by_id']);
+        Route::get("/getMonthlyStudent",[TransactionController::class, 'get_month_student_list']);
         // End Nanda gopal code api
         //saving fees charged
 

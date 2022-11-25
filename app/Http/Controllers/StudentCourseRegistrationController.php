@@ -19,6 +19,13 @@ use App\Models\TransactionMaster;
 
 class StudentCourseRegistrationController extends Controller
 {
+    public function getFeesModeTypeById($id)
+    {
+        $result = DB::table('courses')
+        ->where('courses.id', '=', $id)
+        ->select('fees_mode_type_id') ->get();
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
     public function index()
     {
         $courseRegistration= StudentCourseRegistration::get();
@@ -169,8 +176,7 @@ class StudentCourseRegistrationController extends Controller
             $counter = str_pad($customVoucher->last_counter,3,"0",STR_PAD_LEFT);
             //creating reference number
             $reference_number = $courseCode.''.$counter."@".$accounting_year;
-
-
+           
             // if any record is failed then whole entry will be rolled back
             //try portion execute the commands and catch execute when error.
             $courseRegistration= new StudentCourseRegistration();
@@ -219,7 +225,7 @@ class StudentCourseRegistrationController extends Controller
              $transaction_master->transaction_date =  $joiningDate;
              $transaction_master->student_course_registration_id = $courseRegistration->id;
              /* $transaction_master->comment = $input_transaction_master->comment; */
-             $transaction_master->fees_year =  $request->input('feesYear');
+             $transaction_master->fees_year = $request->input('feesYear');
              $transaction_master->fees_month = $request->input('feesMonth');
              $transaction_master->save();
              $result_array['transaction_master']=$transaction_master;
