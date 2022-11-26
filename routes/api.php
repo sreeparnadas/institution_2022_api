@@ -127,6 +127,7 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
 
 
     //CourseRegistration
+    Route::get("registerStudent",[StudentCourseRegistrationController::class, 'getRegisterStudent']);
     Route::get("FeesModeTypeById/{id}",[StudentCourseRegistrationController::class, 'getFeesModeTypeById']);
     Route::get("getStudentCourseRegistrations",[StudentCourseRegistrationController::class, 'getStudentToCourseRegistration']);
     Route::get("getCourseId/{id}",[StudentCourseRegistrationController::class, 'getCourseIdByStudentToCourseRegistrationId']);
