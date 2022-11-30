@@ -140,7 +140,7 @@ class TransactionController extends ApiController
         ,'courses.full_name'
         , DB::raw('get_total_received_by_studentregistration(transaction_masters.student_course_registration_id)- get_total_discount_by_studentregistration_id(transaction_masters.student_course_registration_id)
         as total_received')
-        )->distinct()->get();
+        )->orderBy('student_course_registration_id', 'DESC')->distinct()->get();
         foreach ($result as $row) {
             $row->setAttribute('fees_received_details', $this->get_fees_received_details_by_id($row->student_course_registration_id));
         }  
@@ -1174,6 +1174,7 @@ class TransactionController extends ApiController
        ->having(DB::raw('month(CURDATE())'),'>',DB::raw('max(transaction_masters.fees_month)'))
        ->having(DB::raw('year(CURDATE())'),'=',DB::raw('max(transaction_masters.fees_year)'))
        ->select('transaction_masters.student_course_registration_id'
+       ,DB::raw('max(student_course_registrations.ledger_id) as student_id')
        ,DB::raw('max(ledgers.ledger_name) as ledger_name')
        ,DB::raw('max(courses.full_name) as full_name')
        ,DB::raw('max(transaction_masters.transaction_date) as transaction_date')

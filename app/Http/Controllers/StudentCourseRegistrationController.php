@@ -19,6 +19,31 @@ use App\Models\TransactionMaster;
 
 class StudentCourseRegistrationController extends Controller
 {
+    public function get_total_active_student()
+    {
+        $result = $result = DB::select("select count(*) as totalActiveStudent from student_course_registrations
+        where is_completed=0");
+       
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
+    public function get_total_monthly_active_student()
+    {
+        $result = $result = DB::select("select count(*) as totalMonthlyStudent from student_course_registrations
+        inner join courses ON courses.id = student_course_registrations.course_id
+        where student_course_registrations.is_completed=0
+        and courses.fees_mode_type_id=1");
+       
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
+    public function get_total_full_course_active_student()
+    {
+        $result = $result = DB::select("select count(*) as totalFullCourseStudent from student_course_registrations
+        inner join courses ON courses.id = student_course_registrations.course_id
+        where student_course_registrations.is_completed=0
+        and courses.fees_mode_type_id=2");
+       
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
     public function getFeesModeTypeById($id)
     {
         $result = DB::table('courses')

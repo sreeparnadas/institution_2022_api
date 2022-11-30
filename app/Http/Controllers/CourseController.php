@@ -13,6 +13,26 @@ use Illuminate\Validation\Rule;
 class CourseController extends ApiController
 {
 
+    public function get_total_course()
+    {
+        $result = $result = DB::select("select count(*) as totalCourse from courses");
+       
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
+    public function get_total_monthly_course()
+    {
+        $result = $result = DB::select("select count(*) as totalMonthlyCourse from courses
+        where fees_mode_type_id=1");
+       
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
+    public function get_total_full_course()
+    {
+        $result = $result = DB::select("select count(*) as totalFullCourse from courses
+        where fees_mode_type_id=2");
+       
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
     public function index()
     {
         $courses= Course::get();

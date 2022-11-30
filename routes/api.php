@@ -104,6 +104,11 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
 
 
     //course
+    // nanda gopal api
+    Route::get("coursesTotal",[CourseController::class, 'get_total_course']);
+    Route::get("coursesMonthly",[CourseController::class, 'get_total_monthly_course']);
+    Route::get("coursesFull",[CourseController::class, 'get_total_full_course']);
+    //-------------------
     Route::get("courses",[CourseController::class, 'index']);
     Route::get("courses/{id}",[CourseController::class, 'index_by_id']);
     Route::post("courses",[CourseController::class, 'store']);
@@ -127,6 +132,11 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
 
 
     //CourseRegistration
+    // nanda gopal api
+    Route::get("totalActiveStudent",[StudentCourseRegistrationController::class, 'get_total_active_student']);
+    Route::get("totalMonthlyActiveStudent",[StudentCourseRegistrationController::class, 'get_total_monthly_active_student']);
+    Route::get("totalFullCourseActiveStudent",[StudentCourseRegistrationController::class, 'get_total_full_course_active_student']);
+    //-------------------
     Route::get("registerStudent",[StudentCourseRegistrationController::class, 'getRegisterStudent']);
     Route::get("FeesModeTypeById/{id}",[StudentCourseRegistrationController::class, 'getFeesModeTypeById']);
     Route::get("getStudentCourseRegistrations",[StudentCourseRegistrationController::class, 'getStudentToCourseRegistration']);
