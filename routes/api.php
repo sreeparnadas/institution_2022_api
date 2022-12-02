@@ -169,6 +169,9 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
         Route::post("getFeesByLedgerId",[TransactionController::class, 'get_fees_by_ledger_id']);
 
         //Get all Fees charge
+        
+
+        Route::get("/getFeesReceived/{id}",[TransactionController::class, 'get_fees_received_details_by_registration_id']);
         Route::get("/getFeeCharge/{id}",[TransactionController::class, 'get_feeCharge_by_id']);
         Route::get("/allFeesReceived",[TransactionController::class, 'get_all_feeReceived']);
         Route::get("/allFeesCharged",[TransactionController::class, 'get_all_feeCharge']);

@@ -16,6 +16,34 @@ use Illuminate\Support\Facades\Validator;
 class TransactionController extends ApiController
 {
     //----- Nanda gopal code -------------_
+    public function get_fees_received_details_by_registration_id($id){
+                 
+        $result = DB::select("select trans_master2.student_course_registration_id, 
+        trans_master1.id,
+        trans_master1.reference_transaction_master_id,
+        table1.transaction_number,
+        table1.transaction_date, 
+        trans_master1.comment,
+        table1.ledger_id,
+        table1.ledger_name, 
+        table1.temp_total_received,
+        get_total_course_fees_by_studentregistration(trans_master2.student_course_registration_id) as totalDue
+        from transaction_masters trans_master1,transaction_masters trans_master2
+        inner join (select transaction_masters.id,
+                          transaction_masters.transaction_number,
+                          transaction_masters.transaction_date,
+                          transaction_details.ledger_id,
+                          ledgers.ledger_name,
+                          transaction_details.amount as temp_total_received from transaction_masters
+                          inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+                          inner join ledgers ON ledgers.id = transaction_details.ledger_id
+                          where transaction_masters.voucher_type_id=4
+                          and transaction_details.transaction_type_id=1) as table1
+        where trans_master1.reference_transaction_master_id=trans_master2.id
+        and table1.id = trans_master1.id
+        and trans_master2.student_course_registration_id='$id' order by trans_master1.created_at desc");
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
     public function get_auto_generate_entry()
     {
         $result = DB::select("SELECT ledgers.ledger_name,
@@ -341,13 +369,15 @@ class TransactionController extends ApiController
         ->where('transaction_masters.student_course_registration_id', '=', $id)
         ->select('transaction_masters.transaction_number','transaction_masters.reference_transaction_master_id',
         'transaction_masters.id') ->get(); */ 
-         $transactionMaster = DB::select(" select distinct transaction_masters.id,transaction_masters.transaction_number,
+         $transactionMaster = DB::select("select distinct transaction_masters.id,transaction_masters.transaction_number,
          transaction_masters.student_course_registration_id,
                  transaction_details.ledger_id
                  ,ledgers.ledger_name
                  ,get_total_fees_charge_by_transaction_ledger_id(transaction_masters.id,transaction_details.ledger_id) as total_billed
                  ,get_total_fees_received_by_transaction_ledger_id(transaction_masters.id,transaction_details.ledger_id)
-                  as total_received
+                  as total_received,
+                 get_total_billed_by_transaction_id(transaction_masters.id) as temp_billed,
+                  get_total_received_by_transaction_id(transaction_masters.id) as temp_received
                  from transaction_masters
                  inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
                  inner join ledgers ON ledgers.id = transaction_details.ledger_id
@@ -355,6 +385,7 @@ class TransactionController extends ApiController
                  where ledger_groups.id=6
                  and (get_total_fees_charge_by_transaction_ledger_id(transaction_masters.id,transaction_details.ledger_id) -
                  get_total_fees_received_by_transaction_ledger_id(transaction_masters.id,transaction_details.ledger_id))>0
+                 and (get_total_billed_by_transaction_id(transaction_masters.id)-get_total_received_by_transaction_id(transaction_masters.id))>0
                  and transaction_masters.student_course_registration_id='$id'"); 
         return response()->json(['success'=>1,'data'=> $transactionMaster], 200,[],JSON_NUMERIC_CHECK);
 
