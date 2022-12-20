@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\FeesChargedResource;
 use App\Http\Resources\TransactionMasterResource;
+use App\Http\Resources\TransactionMasterReceivedResource;
+use App\Http\Resources\TransactionMasterSpecialResource;
 use App\Models\CustomVoucher;
 use App\Models\Ledger;
 use App\Models\StudentCourseRegistration;
 use App\Models\TransactionDetail;
 use App\Models\TransactionMaster;
+use App\Models\WorkingDay;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -16,8 +19,13 @@ use Illuminate\Support\Facades\Validator;
 class TransactionController extends ApiController
 {
     //----- Nanda gopal code -------------_
-    public function get_fees_received_details_by_registration_id($id){
-                 
+    public function get_count_working_days(){
+        $result=DB::select("select user_id,count_days,total_days,description,start_date,end_date,description,inforce,DATEDIFF(end_date,curdate()) AS date_difference from working_days");
+       //$count_days=$result[0]->count_days;
+        //$total_days=$result[0]->total_days;
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
+    public function get_fees_received_details_by_registration_id($id){    
         $result = DB::select("select trans_master2.student_course_registration_id, 
         trans_master1.id,
         trans_master1.reference_transaction_master_id,
@@ -306,6 +314,22 @@ class TransactionController extends ApiController
         ->get();
         //return $result;
         return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
+    public function get_fees_charge_details_main_by_id_old($studentToRegistationId){
+        $result = TransactionMaster::whereStudentCourseRegistrationId($studentToRegistationId)
+           ->get();
+       
+        //return $result;
+        //return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+        return $this->successResponse(TransactionMasterResource::collection($result));
+    }
+    public function get_fees_Received_details_main_by_id_old($studentToRegistationId){
+        $result = TransactionMaster::whereStudentCourseRegistrationId($studentToRegistationId)
+           ->get();
+       
+        //return $result;
+        //return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+        return $this->successResponse(TransactionMasterReceivedResource::collection($result));
     }
     public function get_fees_due_list_by_tran_id($id){
        /*  $result = DB::select("select distinct transaction_masters.id,transaction_masters.student_course_registration_id,

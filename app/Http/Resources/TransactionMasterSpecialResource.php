@@ -14,7 +14,7 @@ use App\Models\TransactionMaster;
  * @property mixed transaction_details
  * @property mixed reference_transaction_master_id
  */
-class TransactionMasterResource extends JsonResource
+class TransactionMasterSpecialResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -31,11 +31,9 @@ class TransactionMasterResource extends JsonResource
             "referenceTransactionMasterId"=>$this->reference_transaction_master_id,
            "comment"=>$this->comment,
            "transactionMasterId"=>$this->id,
-           "voucherType"=> new VoucherTypeResource($this->voucher_type), 
-           "transactionDetailsDebit"=>TransactionDetailResource::collection($this->transaction_details_debit),
-           "transactionDetailsCredit"=>TransactionDetailResource::collection($this->transaction_details_credit),
-           "transactionDetails"=>TransactionDetailResource::collection($this->transaction_details)
-           //"reletedTransactions"=>TransactionMaster::whereReferenceTransactionMasterId($this->id)->get()
+           "voucherType"=> new VoucherTypeResource($this->voucher_type),
+           "transactionDetails"=>TransactionDetailResource::collection($this->transaction_details),
+           "reletedTransactions"=>TransactionMasterResource::collection(TransactionMaster::whereReferenceTransactionMasterId($this->id)->get())
         ];
 
     }

@@ -165,6 +165,261 @@ class CreateAllProceduresAndFunctions extends Migration
                   end if;
                   RETURN temp_total_received;
               END;');
+
+              //--------------------1----------
+              DB::unprepared('
+              DROP FUNCTION IF EXISTS institution_db.get_total_received_by_transaction_id;
+              CREATE FUNCTION institution_db.`get_total_received_by_transaction_id`(input_transaction_id bigint) RETURNS double
+                  DETERMINISTIC
+              BEGIN
+                  DECLARE temp_total_received double;
+                  set temp_total_received=0;
+                 select sum(transaction_details.amount*transaction_types.transaction_type_value) into temp_total_received
+                      from transaction_masters
+                      inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+                      inner join ledgers ON ledgers.id = transaction_details.ledger_id
+                      inner join transaction_types on transaction_details.transaction_type_id=transaction_types.id
+                      where voucher_type_id=4
+                      and transaction_details.transaction_type_id=1
+                      and transaction_masters.reference_transaction_master_id=input_transaction_id;
+                       if isnull(temp_total_received) then
+                            set temp_total_received=0;
+                       end if;
+                  RETURN temp_total_received;
+              END;');
+
+                 //--------------------2----------
+              DB::unprepared('
+              DROP FUNCTION IF EXISTS institution_db.get_total_fees_discount_transaction_id;
+              CREATE FUNCTION institution_db.`get_total_fees_discount_transaction_id`(input_transaction_masters_id bigint) RETURNS double
+              DETERMINISTIC
+              BEGIN
+                  DECLARE temp_total_discount double;
+                  set temp_total_discount=0;
+    
+                  select sum(transaction_details.amount) into temp_total_discount from transaction_masters
+                  inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+                  where transaction_masters.reference_transaction_master_id=input_transaction_masters_id
+                  and transaction_masters.voucher_type_id=4
+                  and transaction_details.transaction_type_id=1
+                  and transaction_details.ledger_id=22;
+                  
+                  
+                  if isnull(temp_total_discount) then
+                    set temp_total_discount=0;
+                  end if;
+                  RETURN temp_total_discount;
+              END;');
+                    //-----------------3-------------
+              DB::unprepared('
+              DROP FUNCTION IF EXISTS institution_db.get_total_fees_received_by_transaction_ledger_id;
+              CREATE FUNCTION institution_db.`get_total_fees_received_by_transaction_ledger_id`(input_transaction_id bigint,input_ledger_id bigint) RETURNS double
+              DETERMINISTIC
+            BEGIN
+                  DECLARE temp_total_received double;
+                  set temp_total_received=0;
+                  
+                 select sum(transaction_details.amount) into temp_total_received from transaction_masters
+                  inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+                  where transaction_masters.reference_transaction_master_id=input_transaction_id
+                  and transaction_masters.voucher_type_id=4
+                  and transaction_details.transaction_type_id=1
+                  and transaction_details.ledger_id=input_ledger_id;
+                  
+                  if isnull(temp_total_received) then
+                    set temp_total_received=0;
+                  end if;
+                  RETURN temp_total_received;
+              END;');
+                 //-----------------4-------------
+                 DB::unprepared('
+                 DROP FUNCTION IF EXISTS institution_db.get_total_billed_by_transaction_id;
+                 CREATE FUNCTION institution_db.`get_total_billed_by_transaction_id`(input_transaction_id bigint) RETURNS double
+                     DETERMINISTIC
+                 BEGIN
+                     DECLARE temp_total_billed double;
+                     set temp_total_billed=0;
+                     select SUM(get_total_fees_charge_by_transaction_ledger_id(transaction_masters.id,transaction_details.ledger_id)) into temp_total_billed
+                            from transaction_masters
+                         inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+                         inner join ledgers ON ledgers.id = transaction_details.ledger_id
+                         inner join ledger_groups ON ledger_groups.id = ledgers.ledger_group_id
+                         where ledger_groups.id=6
+                         and (get_total_fees_charge_by_transaction_ledger_id(transaction_masters.id,transaction_details.ledger_id) -
+                         get_total_fees_received_by_transaction_ledger_id(transaction_masters.id,transaction_details.ledger_id))>0
+                         and transaction_masters.id=input_transaction_id;
+                          if isnull(temp_total_billed) then
+                                     set temp_total_billed=0;
+                                   end if;
+                                   RETURN temp_total_billed;
+                 END;');
+                    //------------------5------------
+              DB::unprepared('
+              DROP FUNCTION IF EXISTS institution_db.get_total_due_by_transaction_id;
+              CREATE FUNCTION institution_db.`get_total_due_by_transaction_id`(input_transaction_id bigint) RETURNS double
+                  DETERMINISTIC
+              BEGIN
+                  DECLARE temp_total_due double;
+                  set temp_total_due=0;
+                select sum(table1.total) into temp_total_due from 
+                      (select transaction_masters.id,
+                      transaction_details.amount*transaction_types.transaction_type_value as total
+                      from transaction_masters
+                      inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+                      inner join ledgers ON ledgers.id = transaction_details.ledger_id
+                      inner join transaction_types on transaction_details.transaction_type_id=transaction_types.id
+                      where voucher_type_id=9
+                      and transaction_details.transaction_type_id=2
+                      union all
+                      select transaction_masters.reference_transaction_master_id,
+                      transaction_details.amount*transaction_types.transaction_type_value as total
+                      from transaction_masters
+                      inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+                      inner join ledgers ON ledgers.id = transaction_details.ledger_id
+                      inner join transaction_types on transaction_details.transaction_type_id=transaction_types.id
+                      where voucher_type_id=4
+                      and transaction_details.transaction_type_id=1) as table1
+                  where table1.id=input_transaction_id
+                  group by table1.id;
+                      if isnull(temp_total_due) then
+                            set temp_total_due=0;
+                      end if;
+                  RETURN temp_total_due;
+              END;');
+
+               //------------------6------------
+               DB::unprepared('DROP FUNCTION IF EXISTS institution_db.get_total_fees_charge_by_transaction_id;
+               CREATE FUNCTION institution_db.`get_total_fees_charge_by_transaction_id`(input_transaction_id bigint) RETURNS double
+                   DETERMINISTIC
+               BEGIN
+                             DECLARE temp_total_charged double;
+                               set temp_total_charged=0;
+                       select sum(transaction_details.amount) into temp_total_charged
+                       from transaction_masters
+                       inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+                       inner join ledgers ON ledgers.id = transaction_details.ledger_id
+                       inner join transaction_types on transaction_details.transaction_type_id=transaction_types.id
+                       where voucher_type_id=9
+                       and transaction_details.transaction_type_id=2
+                       and transaction_masters.id=input_transaction_id;
+                               if isnull(temp_total_charged) then
+                                 set temp_total_charged=0;
+                               end if;
+                                   
+                                   RETURN temp_total_charged;
+                         END;');
+
+                //------------------7------------
+              DB::unprepared('DROP FUNCTION IF EXISTS institution_db.get_curr_month_total_cash;
+              CREATE FUNCTION institution_db.`get_curr_month_total_cash`() RETURNS double
+                  DETERMINISTIC
+              BEGIN
+                        DECLARE temp_total_cash double;
+                        set temp_total_cash=0;
+                         select sum(transaction_details.amount) into temp_total_cash FROM transaction_masters
+                        inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+                        where transaction_details.transaction_type_id=1
+                        and transaction_masters.voucher_type_id=4
+                        and transaction_details.ledger_id=1
+                        and month(transaction_masters.transaction_date)=month(curdate());
+                        
+                         if isnull(temp_total_cash) then
+                                set temp_total_cash=0;
+                              end if;
+                                  
+                           RETURN temp_total_cash;
+                      END;');
+
+               //------------------8------------
+               DB::unprepared('DROP FUNCTION IF EXISTS institution_db.get_curr_month_total_bank;
+               CREATE FUNCTION institution_db.`get_curr_month_total_bank`() RETURNS double
+                   DETERMINISTIC
+               BEGIN
+                         DECLARE temp_total_bank double;
+                         set temp_total_bank=0;
+                          select sum(transaction_details.amount) into temp_total_bank FROM transaction_masters
+                         inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+                         where transaction_details.transaction_type_id=1
+                         and transaction_masters.voucher_type_id=4
+                         and transaction_details.ledger_id=2
+                         and month(transaction_masters.transaction_date)=month(curdate());
+                         
+                          if isnull(temp_total_bank) then
+                                 set temp_total_bank=0;
+                               end if;
+                                   
+                            RETURN temp_total_bank;
+                       END;');
+              //------------------9------------
+              DB::unprepared('DROP FUNCTION IF EXISTS institution_db.get_total_course_fees_by_studentregistration;
+              CREATE FUNCTION institution_db.`get_total_course_fees_by_studentregistration`(input_studentregistration bigint) RETURNS double
+                  DETERMINISTIC
+              BEGIN
+                  DECLARE temp_total_course double;
+                  DECLARE temp_transaction_masters_id int;
+                  set temp_total_course=0;
+                  
+                  select sum(transaction_details.amount) into temp_total_course
+                  from transaction_details
+                  inner join transaction_masters ON transaction_masters.id = transaction_details.transaction_master_id
+                  inner join student_course_registrations ON student_course_registrations.id = transaction_masters.student_course_registration_id
+                  where transaction_details.transaction_type_id=2
+                  and transaction_masters.student_course_registration_id=input_studentregistration;
+                  if isnull(temp_total_course) then
+                    set temp_total_course=0;
+                  end if;
+                  RETURN temp_total_course;
+              END;');
+
+               //------------------9------------
+               DB::unprepared('DROP FUNCTION IF EXISTS institution_db.get_total_discount_by_studentregistration;
+               CREATE FUNCTION institution_db.`get_total_discount_by_studentregistration`(input_studentregistration bigint) RETURNS double
+                   DETERMINISTIC
+               BEGIN
+                    DECLARE temp_total_discount double;
+                    DECLARE temp_transaction_masters_id int;
+                    set temp_total_discount=0;
+                    
+                    select sum(get_total_fees_discount_by_studentregistration_ledger_id(transaction_masters.student_course_registration_id,ledgers.id)) into temp_total_discount
+                    FROM transaction_masters
+                    inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+                    inner join ledgers ON ledgers.id = transaction_details.ledger_id
+                    where transaction_details.transaction_type_id=2
+                    and transaction_masters.student_course_registration_id=input_studentregistration;
+                    if isnull(temp_total_discount) then
+                      set temp_total_discount=0;
+                    end if;
+                    RETURN temp_total_discount;
+                END;');
+                 //------------------10------------
+               DB::unprepared('DROP FUNCTION IF EXISTS institution_db.get_total_received_by_studentregistration;
+               CREATE FUNCTION institution_db.`get_total_received_by_studentregistration`(input_studentregistration bigint) RETURNS double
+                   DETERMINISTIC
+               BEGIN
+                    DECLARE temp_total_received double;
+                    DECLARE temp_transaction_masters_id int;
+                    set temp_total_received=0;
+                    
+                    select sum(table1.temp_total_received) into temp_total_received
+                    from transaction_masters trans_master1,transaction_masters trans_master2
+                    inner join (select transaction_masters.id,
+                                      transaction_masters.transaction_number,
+                                      transaction_masters.transaction_date,
+                                      transaction_details.ledger_id,
+                                      ledgers.ledger_name,
+                                      transaction_details.amount as temp_total_received from transaction_masters
+                                      inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+                                      inner join ledgers ON ledgers.id = transaction_details.ledger_id
+                                      where transaction_masters.voucher_type_id=4
+                                      and transaction_details.transaction_type_id=1) as table1
+                    where trans_master1.reference_transaction_master_id=trans_master2.id
+                    and table1.id = trans_master1.id
+                    and trans_master2.student_course_registration_id=input_studentregistration;
+                    if isnull(temp_total_received) then
+                      set temp_total_received=0;
+                    end if;
+                    RETURN temp_total_received;
+                END;');
     }
 
     public function down()

@@ -71,4 +71,10 @@ class TransactionMaster extends Model
         $date=$this->attributes['transaction_date'];
         return Carbon::createFromFormat('Y-m-d', $date)->format('Y-m-d');
     }
+    public function transaction_details_debit(){
+        return $this->transaction_details()->whereTransactionTypeId(1);
+    }
+    public function transaction_details_credit(){
+        return $this->transaction_details()->whereTransactionTypeId(2);
+    }
 }

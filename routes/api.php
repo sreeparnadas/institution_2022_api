@@ -14,6 +14,7 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\DurationTypeController;
 use App\Http\Controllers\StudentQueryController;
 use App\Http\Controllers\BijoyaRegistrationController;
+use App\Http\Controllers\ReportController;
 
 
 /*
@@ -156,7 +157,12 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
 
     //transactions
     Route::group(array('prefix' => 'transactions'), function() {
+
+        
         Route::get("/all",[TransactionController::class, 'get_all_transactions']);
+
+        Route::get("/workingDays",[TransactionController::class, 'get_count_working_days']);
+
         Route::get("/feesCharged",[TransactionController::class, 'get_all_fees_charged_transactions']);
 
         Route::get("/dues/studentId/{id}",[TransactionController::class, 'get_total_dues_by_student_id']);
@@ -181,6 +187,8 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
         Route::get("/feesChargedDetails/{id}",[TransactionController::class, 'get_fees_charge_details_by_id']);
         Route::get("/feesDiscountDetails/{id}",[TransactionController::class, 'get_fees_discount_details_by_id']);
         Route::get("/feesChargedDetailsMain/{id}",[TransactionController::class, 'get_fees_charge_details_main_by_id']);
+        Route::get("/feesChargedDetailsMainOld/{id}",[TransactionController::class, 'get_fees_charge_details_main_by_id_old']);
+        Route::get("/feesReceivedDetailsMainOld/{id}",[TransactionController::class, 'get_fees_Received_details_main_by_id_old']);
         Route::get("/feesDueList/{id}",[TransactionController::class, 'get_fees_due_list_by_id']);
         Route::get("/feesDueListByTranId/{id}",[TransactionController::class, 'get_fees_due_list_by_tran_id']);
 
@@ -213,13 +221,17 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
 
         Route::get("/billDetails/id/{id}",[TransactionController::class, 'get_bill_details_by_id']);
 
+      
 
     });
 
 });
 
 
-
+ // ALL REPORT API
+ Route::get("/getAllIncomeReport",[ReportController::class, 'get_all_income_report']);
+ Route::get('/reportStudentBirthday',[ReportController::class,'getStudentBirthdayReport']);
+ // END REPORT PART
 
 Route::group(array('prefix' => 'dev'), function() {
     // student related API address placed in a group for better readability
@@ -327,5 +339,7 @@ Route::group(array('prefix' => 'dev'), function() {
 
     Route::post("/subject", [SubjectController::class, 'saveSubject']);
     Route::get("/subject", [SubjectController::class, 'index']);
+
+     
 });
 
