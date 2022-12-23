@@ -52,30 +52,8 @@ class TransactionController extends ApiController
         and trans_master2.student_course_registration_id='$id' order by trans_master1.created_at desc");
         return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
     }
-    public function get_auto_generate_entry()
-    {
-        $result = DB::select("SELECT ledgers.ledger_name,
-        transaction_details.ledger_id,
-        transaction_masters.student_course_registration_id,
-        courses.full_name,
-        transaction_masters.transaction_date,
-        student_course_registrations.effective_date,
-        month(student_course_registrations.effective_date) as effectiveDate,
-        MONTH(CURDATE()) as currMonth,
-        MONTH(CURDATE()) - month(student_course_registrations.effective_date) as diffMonth,
-        transaction_details.amount
-        from student_course_registrations
-        inner join transaction_masters on transaction_masters.student_course_registration_id = student_course_registrations.id
-        inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
-        inner join courses ON courses.id = student_course_registrations.course_id
-        inner join ledgers ON ledgers.id = student_course_registrations.ledger_id
-        where courses.fees_mode_type_id=1
-        and transaction_details.transaction_type_id=2
-        and transaction_details.ledger_id=8");
-        
-        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
-    }
-    public function get_fees_by_ledger_id(Request $request)
+    
+    public function get_upcoming_due_list_entry(Request $request)
     {
         $ledgerId = $request->input('ledger_id');
         $tranId = $request->input('transaction_id');

@@ -81,6 +81,7 @@ class StudentCourseRegistrationController extends Controller
          $result = DB::table('student_course_registrations')
             ->join('courses', 'courses.id', '=', 'student_course_registrations.course_id')
             ->join('ledgers', 'ledgers.id', '=', 'student_course_registrations.ledger_id')
+            ->orderBy('student_course_registrations.id','desc')
             ->select('student_course_registrations.id', 
             'student_course_registrations.ledger_id',
             'student_course_registrations.course_id',

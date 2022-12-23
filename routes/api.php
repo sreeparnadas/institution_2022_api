@@ -228,10 +228,12 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
 });
 
 
- // ALL REPORT API
- Route::get("/getAllIncomeReport",[ReportController::class, 'get_all_income_report']);
- Route::get('/reportStudentBirthday',[ReportController::class,'getStudentBirthdayReport']);
- // END REPORT PART
+    // ALL REPORT API
+    Route::get("/getAllIncomeReport",[ReportController::class, 'get_all_income_report']);
+    Route::get('/reportStudentBirthday',[ReportController::class,'get_student_birthday_report']);
+    Route::get('/reportUpcomingDueList',[ReportController::class,'get_upcoming_due_list_report']);
+    Route::get('/reportStudentToCourseRegistrationList',[ReportController::class,'get_student_to_course_registration_report']);
+    // END REPORT PART
 
 Route::group(array('prefix' => 'dev'), function() {
     // student related API address placed in a group for better readability

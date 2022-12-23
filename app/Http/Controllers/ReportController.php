@@ -25,7 +25,7 @@ class ReportController extends Controller
         return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
     }
 
-    public function getStudentBirthdayReport()
+    public function get_student_birthday_report()
     {
        
          $result=DB::table('ledgers')
@@ -45,5 +45,65 @@ class ReportController extends Controller
          return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
          //--------------------------------------------
         
+    }
+    public function get_upcoming_due_list_report()
+    {
+        $result = DB::select('select ledgers.ledger_name as student_name,ledgers.whatsapp_number,
+        courses.full_name,
+        trans_master2.student_course_registration_id, 
+        max(table1.transaction_date) as transaction_date, 
+        datediff(curdate(),max(table1.transaction_date)) as date_Diff,
+        get_total_due_by_student_registration_id(trans_master2.student_course_registration_id) as total_due
+             from transaction_masters trans_master1,transaction_masters trans_master2
+        inner join (select transaction_masters.id,
+                          transaction_masters.transaction_number,
+                          transaction_masters.transaction_date,
+                          transaction_masters.created_at,
+                          transaction_details.ledger_id,
+                          ledgers.ledger_name,
+                          transaction_details.amount as temp_total_received from transaction_masters
+                          inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
+                          inner join ledgers ON ledgers.id = transaction_details.ledger_id
+                          where transaction_masters.voucher_type_id=4
+                          and transaction_details.transaction_type_id=1 and transaction_details.ledger_id not in(22)) as table1
+        inner join student_course_registrations ON student_course_registrations.id = trans_master2.student_course_registration_id
+        inner join courses ON courses.id = student_course_registrations.course_id
+        inner join ledgers ON ledgers.id = student_course_registrations.ledger_id
+        where trans_master1.reference_transaction_master_id=trans_master2.id
+        and table1.id = trans_master1.id 
+        group by trans_master2.student_course_registration_id,courses.full_name,ledgers.ledger_name,ledgers.whatsapp_number
+        having datediff(curdate(),max(table1.transaction_date))>15
+        and get_total_due_by_student_registration_id(trans_master2.student_course_registration_id)>0
+        order by datediff(curdate(),max(table1.transaction_date)) desc');
+        
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
+    }
+
+    public function get_student_to_course_registration_report()
+    {
+        //$courseRegistration= StudentCourseRegistration::get();
+         $result = DB::table('student_course_registrations')
+            ->join('courses', 'courses.id', '=', 'student_course_registrations.course_id')
+            ->join('ledgers', 'ledgers.id', '=', 'student_course_registrations.ledger_id')
+            ->orderBy('student_course_registrations.id','desc')
+            ->select('student_course_registrations.id', 
+            'student_course_registrations.ledger_id',
+            'student_course_registrations.course_id',
+            'student_course_registrations.discount_allowed',
+            'student_course_registrations.joining_date',
+            'student_course_registrations.effective_date',
+            'student_course_registrations.actual_course_duration',
+            'student_course_registrations.duration_type_id',
+            'ledgers.ledger_name',
+            'courses.full_name',
+            'ledgers.whatsapp_number',
+            'student_course_registrations.is_completed',
+            DB::raw('get_total_course_fees_by_studentregistration(student_course_registrations.id) as total_course_fees'),
+            DB::raw('get_total_received_by_studentregistration(student_course_registrations.id) as total_received'),
+            DB::raw('get_total_due_by_student_registration_id(student_course_registrations.id) as total_due')
+             )
+            ->get(); 
+
+        return response()->json(['success'=>1,'data'=> $result], 200,[],JSON_NUMERIC_CHECK);
     }
 }
