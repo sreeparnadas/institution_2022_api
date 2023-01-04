@@ -72,7 +72,7 @@ class ReportController extends Controller
         where trans_master1.reference_transaction_master_id=trans_master2.id
         and table1.id = trans_master1.id 
         group by trans_master2.student_course_registration_id,courses.full_name,ledgers.ledger_name,ledgers.whatsapp_number
-        having datediff(curdate(),max(table1.transaction_date))>15
+        having datediff(curdate(),max(table1.transaction_date))>24
         and get_total_due_by_student_registration_id(trans_master2.student_course_registration_id)>0
         order by datediff(curdate(),max(table1.transaction_date)) desc');
         

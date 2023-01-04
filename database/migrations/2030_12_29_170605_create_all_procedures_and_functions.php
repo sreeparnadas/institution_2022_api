@@ -420,6 +420,24 @@ class CreateAllProceduresAndFunctions extends Migration
                     end if;
                     RETURN temp_total_received;
                 END;');
+
+                   //------------------10------------
+               DB::unprepared('DROP FUNCTION IF EXISTS institution_db.get_total_due_by_student_registration_id;
+               CREATE FUNCTION institution_db.`get_total_due_by_student_registration_id`(input_student_registration_id bigint) RETURNS double
+                   DETERMINISTIC
+               BEGIN
+                   DECLARE temp_total_due double;
+                   set temp_total_due=0;
+                         select get_total_course_fees_by_studentregistration(student_course_registrations.id)-
+                         get_total_received_by_studentregistration(student_course_registrations.id) into temp_total_due
+                         FROM student_course_registrations
+                         where student_course_registrations.id=input_student_registration_id;
+                        if isnull(temp_total_due) then
+                             set temp_total_due=0;
+                        end if;
+                   RETURN temp_total_due;
+               END;');
+
     }
 
     public function down()

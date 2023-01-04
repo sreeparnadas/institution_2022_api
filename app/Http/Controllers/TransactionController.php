@@ -121,7 +121,8 @@ class TransactionController extends ApiController
                 table1.transaction_date, 
                 table1.ledger_id,
                 table1.ledger_name, 
-                table1.temp_total_received
+                table1.temp_total_received,
+                get_total_course_fees_by_studentregistration(trans_master2.student_course_registration_id) as total_course_fees
                 from transaction_masters trans_master1,transaction_masters trans_master2
                 inner join (select transaction_masters.id,
                                   transaction_masters.transaction_number,
@@ -310,20 +311,6 @@ class TransactionController extends ApiController
         return $this->successResponse(TransactionMasterReceivedResource::collection($result));
     }
     public function get_fees_due_list_by_tran_id($id){
-       /*  $result = DB::select("select distinct transaction_masters.id,transaction_masters.student_course_registration_id,
-        transaction_details.ledger_id
-        ,ledgers.ledger_name
-        ,get_total_fees_charge_by_transaction_ledger_id(transaction_masters.id,transaction_details.ledger_id) as total_billed
-        ,get_total_fees_received_by_transaction_ledger_id(transaction_masters.id,transaction_details.ledger_id)
-         as total_received
-        from transaction_masters
-        inner join transaction_details on transaction_details.transaction_master_id = transaction_masters.id
-        inner join ledgers ON ledgers.id = transaction_details.ledger_id
-        inner join ledger_groups ON ledger_groups.id = ledgers.ledger_group_id
-        where ledger_groups.id=6
-        and (get_total_fees_charge_by_transaction_ledger_id(transaction_masters.id,transaction_details.ledger_id) -
-        get_total_fees_received_by_transaction_ledger_id(transaction_masters.id,transaction_details.ledger_id))>0
-        and transaction_masters.id='$id'"); */
         $result = DB::select("select distinct transaction_masters.id,transaction_masters.student_course_registration_id,
         transaction_details.ledger_id
         ,ledgers.ledger_name
