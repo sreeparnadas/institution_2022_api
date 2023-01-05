@@ -38,6 +38,8 @@ class CreateStudentCourseRegistrationsTable extends Migration
             $table->boolean('is_started')->default(false);
             $table->boolean('is_completed')->default(false);
 
+              //user id
+            $table->foreignId('user_id')->nullable(true)->references('id')->on('users')->onDelete('cascade');
 
             $table->timestamps();
         });

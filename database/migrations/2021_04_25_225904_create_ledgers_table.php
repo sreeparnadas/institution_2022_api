@@ -48,6 +48,9 @@ class CreateLedgersTable extends Migration
             $table->foreignId('transaction_type_id')->default(1)->references('id')->on('transaction_types')->onDelete('cascade');
             $table->decimal('opening_balance')->default(0);
 
+              //user id
+            $table->foreignId('user_id')->nullable(true)->references('id')->on('users')->onDelete('cascade');
+
             $table->tinyInteger('inforce')->default('1');
             $table->timestamps();
         });

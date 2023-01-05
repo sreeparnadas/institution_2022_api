@@ -24,6 +24,8 @@ class CreateCoursesTable extends Migration
             $table->string('description', 50)->nullable(true);
             $table->foreignId('duration_type_id')->nullable(false)->references('id')->on('duration_types')->onDelete('cascade');
             $table->enum('inforce', array(0, 1))->default(1);
+              //user id
+            $table->foreignId('user_id')->nullable(true)->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
         });
     }
