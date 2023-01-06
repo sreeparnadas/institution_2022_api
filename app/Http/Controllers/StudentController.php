@@ -214,7 +214,6 @@ class StudentController extends ApiController
             $student->whatsapp_number= $request->input('whatsappNumber');
             $student->email_id= $request->input('email');
             $student->qualification= $request->input('qualification');
-            $student->user_id= $request->input('userID');
             $student->entry_date= $entryDate;
             $student->save();
             DB::commit();
